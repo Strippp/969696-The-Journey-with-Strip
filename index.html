@@ -2576,6 +2576,10 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
                             </div>
                         </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div id="remViewSw" class="rc-vsw" role="group" aria-label="Tampilan pengingat">
+                                <button type="button" data-v="card" onclick="setReminderView('card')" title="Tampilan kartu"><i class="fa-solid fa-table-cells-large"></i><span>Kartu</span></button>
+                                <button type="button" data-v="table" onclick="setReminderView('table')" title="Tampilan tabel"><i class="fa-solid fa-list"></i><span>Tabel</span></button>
+                            </div>
                             <div id="remTabs" class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl flex-1 sm:flex-none">
                                 <button type="button" data-t="TODAY" onclick="setReminderTab('TODAY')" class="rem-tab">Hari H <span class="rem-count" id="remCntToday">0</span></button>
                                 <button type="button" data-t="TOMORROW" onclick="setReminderTab('TOMORROW')" class="rem-tab">H-1 <span class="rem-count" id="remCntTomorrow">0</span></button>
@@ -3975,7 +3979,7 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Email Google Calendar Tujuan:</label>
                         <div class="flex gap-2">
-                            <input type="email" id="inviteFlEmail" class="flex-1 bg-white border border-slate-200 rounded-lg p-2 text-xs font-semibold outline-none focus:border-indigo-500" placeholder="emailfotografer@gmail.com">
+                            <input type="email" id="inviteFlEmail" oninput="refreshInviteContent()" class="flex-1 bg-white border border-slate-200 rounded-lg p-2 text-xs font-semibold outline-none focus:border-indigo-500" placeholder="emailfotografer@gmail.com">
                             <button onclick="updateFreelanceEmailFromModal()" title="Simpan email ke profil fotografer" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] font-bold rounded-lg transition-colors whitespace-nowrap">
                                 Simpan Email
                             </button>
@@ -3983,13 +3987,24 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
                     </div>
                 </div>
 
+                <!-- Mode detail undangan -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Isi Undangan Google Calendar:</label>
+                    <div id="inviteModeSeg" class="inv-seg">
+                        <button type="button" data-m="full" onclick="setInviteDetailMode('full')"><i class="fa-solid fa-user-tag"></i> Dengan detail client</button>
+                        <button type="button" data-m="lite" onclick="setInviteDetailMode('lite')"><i class="fa-solid fa-user-slash"></i> Tanpa detail client</button>
+                    </div>
+                    <p id="inviteModeHint" class="text-[10px] text-slate-400 mt-1"></p>
+                </div>
+
                 <!-- Ringkasan Job -->
                 <div class="border border-slate-200/80 rounded-xl p-3 text-xs space-y-1.5 bg-white">
-                    <div class="flex justify-between text-slate-700"><span class="text-slate-400">Klien & Kampus:</span> <strong id="inviteJobClient">-</strong></div>
-                    <div class="flex justify-between text-slate-700"><span class="text-slate-400">Waktu Pemotretan:</span> <strong id="inviteJobTime" class="text-indigo-600">-</strong></div>
-                    <div class="flex justify-between text-slate-700"><span class="text-slate-400">Lokasi:</span> <strong id="inviteJobLoc">-</strong></div>
-                    <div class="flex justify-between text-slate-700"><span class="text-slate-400">Paket:</span> <strong id="inviteJobPkg">-</strong></div>
-                    <div class="flex justify-between text-slate-700 pt-1 border-t border-slate-100"><span class="text-slate-400">Fee Freelance:</span> <strong id="inviteJobFee" class="text-emerald-600 font-extrabold">Rp 0</strong></div>
+                    <div id="inviteRowClient" class="flex justify-between gap-3 text-slate-700"><span class="text-slate-400">Klien & Kampus:</span> <strong id="inviteJobClient" class="text-right">-</strong></div>
+                    <div id="inviteRowUniv" class="flex justify-between gap-3 text-slate-700"><span class="text-slate-400">Universitas:</span> <strong id="inviteJobUniv" class="text-right">-</strong></div>
+                    <div class="flex justify-between gap-3 text-slate-700"><span class="text-slate-400">Hari, Tanggal & Jam:</span> <strong id="inviteJobTime" class="text-indigo-600 text-right">-</strong></div>
+                    <div class="flex justify-between gap-3 text-slate-700"><span class="text-slate-400">Lokasi:</span> <strong id="inviteJobLoc" class="text-right">-</strong></div>
+                    <div id="inviteRowPkg" class="flex justify-between gap-3 text-slate-700"><span class="text-slate-400">Paket:</span> <strong id="inviteJobPkg" class="text-right">-</strong></div>
+                    <div id="inviteRowFee" class="flex justify-between gap-3 text-slate-700 pt-1 border-t border-slate-100"><span class="text-slate-400">Fee Freelance:</span> <strong id="inviteJobFee" class="text-emerald-600 font-extrabold">Rp 0</strong></div>
                 </div>
 
                 <!-- Textarea Pesan Undangan (Bisa diedit/disalin) -->
@@ -5348,30 +5363,20 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
             submitted = true;
             form.submit();
 
-            const targetSheetName = 'Form Responses 2';
-            const payloadMain = {
-                sheetName: targetSheetName,
-                fotografer: fotografer,
-                nama: nama,
-                univ: kampus,
-                fakultas: fakultas,
-                paket: paket,
-                whatsapp: whatsapp,
-                jam: slotWaktu,
-                tanggal: tanggal,
-                masuk: dpRaw,
-                fee: feeFreelanceRaw,
-                tempat: lokasi
-            };
-
-            fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payloadMain)
-            }).then(() => {
-                fetchSheetData();
-            }).catch(() => {});
+            // v64: baris booking dibuat oleh Google Form (Apps Script mengabaikan kiriman booking tanpa action/PIN),
+            // jadi cukup muat ulang data sheet setelah Form selesai menulis.
+            // v65: setelah Form menulis barisnya, minta Apps Script mengubah teks tanggal jadi format tanggal asli
+            // (dua kali: jaga-jaga bila Form lambat menulis), lalu muat ulang data sheet.
+            // (PIN diambil sekarang karena submit dibungkus konfirmasi PIN; izin postBackend sudah dicabut saat timer berjalan)
+            const _cleanPin = window.__PS_PIN || '';
+            [4000, 12000].forEach(ms => setTimeout(() => {
+                try {
+                    fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ pin: _cleanPin, action: 'cleanDates' }) }).catch(() => {});
+                } catch (e) {}
+            }, ms));
+            setTimeout(() => { try { fetchSheetData(); } catch (e) {} }, 7000);
+            setTimeout(() => { try { fetchSheetData(); } catch (e) {} }, 15000);
 
             setTimeout(() => {
                 if (document.body.contains(form)) document.body.removeChild(form);
@@ -8635,7 +8640,24 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
             saveFreelancersList(list);
             closeProfileFreelanceModal();
             renderProfileFreelanceCards();
-            alert('Data fotografer berhasil disimpan!' + (PSSync.isOk() ? ' Tersinkron ke semua perangkat.' : ''));
+            flConfirmSheetSaved(nama);
+        }
+
+        // Data profil (email, nomor WA, rekening, dll) disimpan ke Google Sheet (sheet "AppData") lewat PSSync.
+        // Fungsi ini memastikan data benar-benar sudah sampai di sheet, dan memberi tahu bila belum.
+        function flConfirmSheetSaved(nama) {
+            const key = 'kv_outbox';
+            const pending = () => { try { return Object.prototype.hasOwnProperty.call(JSON.parse(localStorage.getItem(key) || '{}') || {}, flKeyOf(nama)); } catch (e) { return false; } };
+            psToast('Data ' + nama + ' disimpan. Menyimpan ke Google Sheet...', 'ok');
+            let tries = 0;
+            const check = async () => {
+                tries++;
+                try { await PSSync.pull(); } catch (e) {}
+                if (!pending()) { psToast('Data ' + nama + ' tersimpan di Google Sheet.', 'ok'); return; }
+                if (tries < 3) { setTimeout(check, 3000); return; }
+                psToast('Belum masuk ke Google Sheet. Data aman di perangkat ini dan akan dicoba lagi otomatis. Cek koneksi / Apps Script.', 'warn');
+            };
+            setTimeout(check, 2500);
         }
 
         function deleteFreelancer(id) {
@@ -8666,6 +8688,16 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
         // =========================================================================
         let selectedClientForFreelanceInvite = null;
 
+        const INVITE_MODE_KEY = 'inv_detail_mode';
+        function getInviteMode() { try { return localStorage.getItem(INVITE_MODE_KEY) === 'lite' ? 'lite' : 'full'; } catch (e) { return 'full'; } }
+        function inviteDayName(c) {
+            if (c.parsedYear && c.parsedMonth && c.parsedDay) {
+                try { return new Date(c.parsedYear, c.parsedMonth - 1, c.parsedDay).toLocaleDateString('id-ID', { weekday: 'long' }); } catch (e) {}
+            }
+            return c.hari || '';
+        }
+        function inviteWhen(c) { const h = inviteDayName(c); return `${h ? h + ', ' : ''}${c.tanggal || '-'}`; }
+
         function openFreelanceInviteModal(clientId) {
             const c = rawClientsData.find(x => x.id === clientId);
             if (!c) return;
@@ -8682,30 +8714,58 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
                 ? 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200' 
                 : 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200';
 
+            refreshInviteContent();
+            document.getElementById('modalFreelanceInvite').classList.remove('hidden');
+        }
+
+        // Isi ringkasan + teks undangan mengikuti mode: "full" (dengan detail client) atau "lite" (hanya jadwal)
+        function refreshInviteContent() {
+            const c = selectedClientForFreelanceInvite; if (!c) return;
+            const mode = getInviteMode(), lite = mode === 'lite';
+            const photoName = (c.fotografer || 'FAUZI').toUpperCase().trim();
+            const email = (document.getElementById('inviteFlEmail').value || '').trim();
+            const fee = formatIDR(c.feeFreelance || 225000).replace(/\u00a0/g, ' ');
+            const when = inviteWhen(c);
+
+            document.querySelectorAll('#inviteModeSeg button').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
+            const hint = document.getElementById('inviteModeHint');
+            if (hint) hint.innerText = lite
+                ? 'Hanya menampilkan hari, tanggal, jam, tempat, dan universitas. Nama client, paket, fakultas, kontak, dan fee disembunyikan.'
+                : 'Menampilkan detail lengkap: nama client, kontak client, paket, dan fee freelance.';
+
+            const show = (id, on) => { const e = document.getElementById(id); if (e) e.classList.toggle('hidden', !on); };
+            show('inviteRowClient', !lite); show('inviteRowUniv', lite); show('inviteRowPkg', !lite); show('inviteRowFee', !lite);
+
             document.getElementById('inviteJobClient').innerText = `${c.klien || '-'} (${c.univ || '-'} ${c.fakultas ? '/ ' + c.fakultas : ''})`;
-            document.getElementById('inviteJobTime').innerText = `${c.tanggal || '-'} • ${c.waktu || '-'}`;
+            document.getElementById('inviteJobUniv').innerText = c.univ || '-';
+            document.getElementById('inviteJobTime').innerText = `${when} • ${c.waktu || '-'}`;
             document.getElementById('inviteJobLoc').innerText = c.tempat || '-';
             document.getElementById('inviteJobPkg').innerText = c.paket || '-';
-            document.getElementById('inviteJobFee').innerText = formatIDR(c.feeFreelance || 225000).replace(/\u00a0/g, ' ');
+            document.getElementById('inviteJobFee').innerText = fee;
 
-            // Generate GCal link
-            const gcalUrl = generateGoogleCalendarUrl(c, fl.email);
-
-            // Generate Invitation Text for WhatsApp / Email
-            const inviteMsg = `Halo ${photoName}! 👋\nBerikut jadwal job pemotretan Stripictures untuk kamu:\n\n📸 Klien: ${c.klien || '-'} (${c.univ || '-'})\n📅 Tanggal: ${c.tanggal || '-'}\n⏰ Jam: ${c.waktu || '-'}\n📍 Lokasi: ${c.tempat || '-'}\n📦 Paket: ${c.paket || '-'}\n💰 Fee Freelance: ${formatIDR(c.feeFreelance || 225000).replace(/\u00a0/g, ' ')}\n\n🔗 Link Klaim / Tambah ke Google Calendar:\n${gcalUrl}\n\nMohon konfirmasi dan klaim jadwal tersebut ya. Terima kasih! 🙏`;
-
+            const gcalUrl = generateGoogleCalendarUrl(c, email, mode);
+            const inviteMsg = lite
+                ? `Halo ${photoName}! 👋\nBerikut jadwal job pemotretan Stripictures untuk kamu:\n\n📅 Hari/Tanggal: ${when}\n⏰ Jam: ${c.waktu || '-'}\n📍 Lokasi: ${c.tempat || '-'}\n🎓 Universitas: ${c.univ || '-'}\n\n🔗 Link Klaim / Tambah ke Google Calendar:\n${gcalUrl}\n\nMohon konfirmasi dan klaim jadwal tersebut ya. Terima kasih! 🙏`
+                : `Halo ${photoName}! 👋\nBerikut jadwal job pemotretan Stripictures untuk kamu:\n\n📸 Klien: ${c.klien || '-'} (${c.univ || '-'})\n📅 Hari/Tanggal: ${when}\n⏰ Jam: ${c.waktu || '-'}\n📍 Lokasi: ${c.tempat || '-'}\n📦 Paket: ${c.paket || '-'}\n💰 Fee Freelance: ${fee}\n\n🔗 Link Klaim / Tambah ke Google Calendar:\n${gcalUrl}\n\nMohon konfirmasi dan klaim jadwal tersebut ya. Terima kasih! 🙏`;
             document.getElementById('inviteMessageText').value = inviteMsg;
-            document.getElementById('modalFreelanceInvite').classList.remove('hidden');
+        }
+
+        function setInviteDetailMode(m) {
+            try { localStorage.setItem(INVITE_MODE_KEY, m === 'lite' ? 'lite' : 'full'); } catch (e) {}
+            refreshInviteContent();
         }
 
         function closeFreelanceInviteModal() {
             document.getElementById('modalFreelanceInvite').classList.add('hidden');
         }
 
-        function generateGoogleCalendarUrl(c, emailTarget) {
-            const title = `Stripictures: ${c.klien || 'Job'} (${c.univ || 'Wisuda'})`;
+        function generateGoogleCalendarUrl(c, emailTarget, mode) {
+            const lite = (mode || getInviteMode()) === 'lite';
+            const title = lite ? `Stripictures: Pemotretan ${c.univ || ''}`.trim() : `Stripictures: ${c.klien || 'Job'} (${c.univ || 'Wisuda'})`;
             const loc = c.tempat || 'Yogyakarta';
-            const details = `Job Pemotretan Stripictures\nKlien: ${c.klien || '-'}\nNo WA Klien: ${c.whatsapp || '-'}\nPaket: ${c.paket || '-'}\nFee Freelance: ${formatIDR(c.feeFreelance || 225000).replace(/\u00a0/g, ' ')}\nLokasi: ${c.tempat || '-'}`;
+            const details = lite
+                ? `Jadwal Pemotretan Stripictures\nHari/Tanggal: ${inviteWhen(c)}\nJam: ${c.waktu || '-'}\nTempat: ${c.tempat || '-'}\nUniversitas: ${c.univ || '-'}`
+                : `Job Pemotretan Stripictures\nKlien: ${c.klien || '-'}\nNo WA Klien: ${c.whatsapp || '-'}\nPaket: ${c.paket || '-'}\nFee Freelance: ${formatIDR(c.feeFreelance || 225000).replace(/\u00a0/g, ' ')}\nHari/Tanggal: ${inviteWhen(c)}\nLokasi: ${c.tempat || '-'}`;
 
             // Hitung format tanggal YYYYMMDDTHHmmss
             let y = c.parsedYear || 2026;
@@ -8781,7 +8841,7 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
             if (idx !== -1) {
                 list[idx].email = email;
                 saveFreelancersList(list);
-                alert(`Email ${email} berhasil disimpan untuk fotografer ${photoName}!`);
+                flConfirmSheetSaved(photoName);
                 openFreelanceInviteModal(selectedClientForFreelanceInvite.id);
             } else {
                 alert('Fotografer tidak ditemukan di database.');
@@ -9285,6 +9345,35 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
         // PENGINGAT PEMOTRETAN: HARI H, H-1, 7 HARI KE DEPAN
         // =========================================================
         let reminderTab = null;
+        let reminderView = (function () { try { return localStorage.getItem('rem_view') === 'table' ? 'table' : 'card'; } catch (e) { return 'card'; } })();
+        function setReminderView(v) {
+            reminderView = v === 'table' ? 'table' : 'card';
+            try { localStorage.setItem('rem_view', reminderView); } catch (e) {}
+            renderUpcomingReminders();
+            const l = document.getElementById('remList'); if (l) { l.scrollTop = 0; l.scrollLeft = 0; }
+        }
+        function remTableHtml(cur) {
+            const fmtM = m => m == null ? '' : pad2(Math.floor(m / 60)) + ':' + pad2(m % 60);
+            const rows = cur.map(({ c, diff }) => {
+                const done = remIsDone(c), autoDone = remIsPast(c), cd = remCountdown(c, diff), lunas = (c.kekurangan || 0) <= 0;
+                const t1 = fmtM(remStartMinutes(c)), t2 = fmtM(remEndMinutes(c));
+                const tag = diff === 0 ? 'HARI H' : `H-${diff}`;
+                const cdTone = /rose/.test(cd.cls) ? 'hot' : /emerald/.test(cd.cls) ? 'live' : '';
+                const sub = [c.univ, c.fakultas].filter(x => x && x !== '-').join(' • ') || '-';
+                const id = esc(c.id);
+                return `<tr class="${done ? 'done' : ''}">
+                    <td class="t-chk"><button type="button" class="rc-chk" ${autoDone ? 'disabled' : ''} title="${autoDone ? 'Selesai otomatis' : 'Tandai sudah diingatkan'}" onclick="toggleReminderDone('${id}')"><i class="fa-solid fa-check"></i></button></td>
+                    <td><span class="rc-tag">${tag}</span><span class="rc-cd ${cdTone} t-cd">${esc(cd.txt)}</span></td>
+                    <td class="t-time"><b>${t1 ? t1 + (t2 ? ' – ' + t2 : '') : esc(c.waktu || '-')}</b><small>${esc(c.tanggal || '-')}</small></td>
+                    <td class="t-name"><b>${esc(c.klien || '-')}</b><small>${esc(sub)}</small></td>
+                    <td>${esc(c.tempat || '-')}</td>
+                    <td class="t-pkg"><span>${esc(c.paket || '-')}</span>${photoBadge(c.fotografer)}</td>
+                    <td class="${lunas ? 'ok' : 'ku'} t-pay">${lunas ? 'LUNAS' : 'Sisa ' + esc(formatIDR(c.kekurangan))}</td>
+                    <td class="t-act"><button type="button" class="rt-b wa" title="Ingatkan via WhatsApp" onclick="sendReminderWa('${id}')"><i class="fa-brands fa-whatsapp"></i></button><button type="button" class="rt-b" title="Undangan freelance" onclick="openFreelanceInviteModal('${id}')"><i class="fa-regular fa-calendar-plus"></i></button><button type="button" class="rt-b" title="Detail klien" onclick="goToClientDetail('${id}')"><i class="fa-solid fa-arrow-up-right-from-square"></i></button></td>
+                </tr>`;
+            }).join('');
+            return `<table class="rt"><thead><tr><th></th><th>Status</th><th>Jadwal</th><th>Klien</th><th>Lokasi</th><th>Paket</th><th>Pembayaran</th><th>Aksi</th></tr></thead><tbody>${rows}</tbody></table>`;
+        }
         let reminderCollapsed = false;
         const REM_C = { TODAY: '#F25C05', TOMORROW: '#7BC43A', WEEK: '#B8C4AE' };
 
@@ -9381,45 +9470,63 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
             const bar = document.getElementById('remProgress'); if (bar) bar.style.width = pct + '%';
             setTxt('remProgressTxt', `${doneN} / ${cur.length} selesai / sudah diingatkan`);
 
+            list.classList.toggle('rc-tbl', reminderView === 'table');
+            document.querySelectorAll('#remViewSw button').forEach(b => b.classList.toggle('on', b.dataset.v === reminderView));
+            if (cur.length && reminderView === 'table') {
+                list.innerHTML = remTableHtml(cur);
+                if (typeof remAfterRender === 'function') remAfterRender();
+                return;
+            }
             if (!cur.length) {
                 const lbl = reminderTab === 'TODAY' ? 'hari ini' : reminderTab === 'TOMORROW' ? 'besok' : '7 hari ke depan';
                 list.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400"><i class="fa-regular fa-calendar-check text-2xl mb-2 block text-emerald-500"></i><p class="text-xs font-semibold">Tidak ada sesi pemotretan ${lbl}.</p></div>`;
                 return;
             }
-            list.innerHTML = cur.map(({ c, diff }) => {
+            const fmtM = m => m == null ? '' : pad2(Math.floor(m / 60)) + ':' + pad2(m % 60);
+            let nextMarked = false;
+            list.innerHTML = cur.map(({ c, diff }, i) => {
                 const done = remIsDone(c), autoDone = remIsPast(c), cd = remCountdown(c, diff), lunas = (c.kekurangan || 0) <= 0;
-                const color = diff === 0 ? REM_C.TODAY : diff === 1 ? REM_C.TOMORROW : REM_C.WEEK;
-                const tag = diff === 0 ? 'HARI H' : diff === 1 ? 'H-1' : `H-${diff}`;
+                const t1 = fmtM(remStartMinutes(c)), t2 = fmtM(remEndMinutes(c));
+                const tone = diff === 0 ? 'today' : diff === 1 ? 'tomorrow' : 'week';
+                const tag = diff === 0 ? 'HARI H' : `H-${diff}`;
+                const isNext = !nextMarked && diff === 0 && !done; if (isNext) nextMarked = true;
+                const cdTone = /rose/.test(cd.cls) ? 'hot' : /emerald/.test(cd.cls) ? 'live' : '';
+                const sub = [c.univ, c.fakultas].filter(x => x && x !== '-').join(' • ') || '-';
+                const id = esc(c.id);
                 return `
-                <div class="rem-card ${done ? 'done' : ''}" style="--rem-c:${color}">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="rem-tag ${diff === 0 ? 'is-today' : ''}">${tag}</span>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${cd.cls}">${esc(cd.txt)}</span>
-                            </div>
-                            <h4 class="rem-name font-extrabold text-sm text-slate-900 truncate" title="${esc(c.klien)}">${esc(c.klien || '-')}</h4>
-                            <p class="text-[11px] text-slate-500 truncate">${esc(c.univ || '-')}${c.fakultas ? ' • ' + esc(c.fakultas) : ''}</p>
+                <article class="rc ${tone} ${done ? 'done' : ''} ${isNext ? 'next' : ''}" data-id="${id}" tabindex="0" role="button" aria-expanded="false" style="--i:${i}">
+                    <div class="rc-top">
+                        <div class="rc-tags"><span class="rc-tag">${tag}</span><span class="rc-cd ${cdTone}">${esc(cd.txt)}</span>${isNext ? '<span class="rc-next">Berikutnya</span>' : ''}</div>
+                        <button type="button" class="rc-chk" ${autoDone ? 'disabled' : ''} aria-label="${autoDone ? 'Selesai otomatis' : 'Tandai sudah diingatkan'}" title="${autoDone ? 'Selesai otomatis (jadwal sudah lewat)' : 'Tandai sudah diingatkan'}" onclick="event.stopPropagation();toggleReminderDone('${id}')"><i class="fa-solid fa-check"></i></button>
+                    </div>
+                    <div class="rc-row">
+                        <div class="rc-time">${t1 ? `<b>${t1}</b>${t2 ? `<small>${t2}</small>` : ''}` : `<i class="fa-regular fa-clock"></i><small>Jam -</small>`}</div>
+                        <div class="rc-main">
+                            <h4 class="rc-name rem-name" title="${esc(c.klien)}">${esc(c.klien || '-')}</h4>
+                            <p class="rc-sub">${esc(sub)}</p>
                         </div>
-                        <label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 cursor-pointer select-none flex-shrink-0" title="${autoDone ? 'Selesai otomatis (waktu jadwal sudah lewat)' : 'Tandai sudah diingatkan'}">
-                            <input type="checkbox" ${done ? 'checked' : ''} ${autoDone ? 'disabled' : ''} onchange="toggleReminderDone('${c.id}')" class="w-4 h-4 accent-emerald-600"> ${autoDone ? 'Selesai' : 'Done'}
-                        </label>
                     </div>
-                    <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] text-slate-600">
-                        <span class="truncate"><i class="fa-regular fa-calendar text-slate-400 mr-1.5"></i>${esc(c.tanggal || '-')}</span>
-                        <span class="truncate"><i class="fa-regular fa-clock text-slate-400 mr-1.5"></i><b class="text-slate-800">${esc(c.waktu || '-')}</b></span>
-                        <span class="truncate"><i class="fa-solid fa-location-dot text-slate-400 mr-1.5"></i>${esc(c.tempat || '-')}</span>
-                        <span class="truncate">${photoBadge(c.fotografer)}</span>
-                        <span class="truncate"><i class="fa-solid fa-box text-slate-400 mr-1.5"></i>${esc(c.paket || '-')}</span>
-                        <span class="truncate font-bold ${lunas ? 'text-emerald-600' : 'text-rose-500'}"><i class="fa-solid fa-wallet mr-1.5 opacity-70"></i>${lunas ? 'LUNAS' : 'Sisa ' + formatIDR(c.kekurangan)}</span>
+                    <div class="rc-chips">
+                        <span><i class="fa-regular fa-calendar"></i>${esc(c.tanggal || '-')}</span>
+                        <span><i class="fa-solid fa-location-dot"></i>${esc(c.tempat || '-')}</span>
                     </div>
-                    <div class="flex gap-1.5 pt-1">
-                        <button type="button" onclick="sendReminderWa('${c.id}')" class="rem-btn wa"><i class="fa-brands fa-whatsapp"></i> Ingatkan</button>
-                        <button type="button" onclick="openFreelanceInviteModal('${c.id}')" class="rem-btn"><i class="fa-regular fa-calendar-plus"></i> Freelance</button>
-                        <button type="button" onclick="goToClientDetail('${c.id}')" class="rem-btn"><i class="fa-brands fa-google-drive text-[#f25c05]"></i> Detail</button>
-                    </div>
-                </div>`;
+                    <div class="rc-more"><div class="rc-more-in">
+                        <dl class="rc-dl">
+                            <div><dt>Waktu</dt><dd>${esc(c.waktu || '-')}</dd></div>
+                            <div><dt>Paket</dt><dd>${esc(c.paket || '-')}</dd></div>
+                            <div><dt>Fotografer</dt><dd>${photoBadge(c.fotografer)}</dd></div>
+                            <div><dt>Pembayaran</dt><dd class="${lunas ? 'ok' : 'ku'}">${lunas ? 'LUNAS' : 'Sisa ' + esc(formatIDR(c.kekurangan))}</dd></div>
+                        </dl>
+                        <div class="rc-act">
+                            <button type="button" class="rc-btn wa" onclick="sendReminderWa('${id}')"><i class="fa-brands fa-whatsapp"></i>Ingatkan</button>
+                            <button type="button" class="rc-btn" onclick="openFreelanceInviteModal('${id}')"><i class="fa-regular fa-calendar-plus"></i>Freelance</button>
+                            <button type="button" class="rc-btn" onclick="goToClientDetail('${id}')"><i class="fa-solid fa-arrow-up-right-from-square"></i>Detail</button>
+                        </div>
+                    </div></div>
+                    <div class="rc-foot"><span class="rc-pay ${lunas ? 'ok' : 'ku'}"><i class="fa-solid fa-wallet"></i>${lunas ? 'Lunas' : 'Sisa ' + esc(formatIDR(c.kekurangan))}</span><span class="rc-hint"><span class="t-open">Ketuk untuk detail</span><span class="t-close">Tutup</span><i class="fa-solid fa-chevron-down"></i></span></div>
+                </article>`;
             }).join('');
+            if (typeof remAfterRender === 'function') remAfterRender();
         }
         setInterval(() => { if (typeof currentView !== 'undefined' && currentView === 'dashboard') renderUpcomingReminders(); }, 60000);
 
@@ -10599,7 +10706,7 @@ function askPin(title){return new Promise(res=>{const o=document.createElement('
  document.body.appendChild(o);const i=o.querySelector('#pinAsk');i.focus();const done=v=>{o.remove();res(v)};
  const go=()=>{if(window.psPinOk(i.value)){window.__PS_PIN=i.value;done(true)}else{o.querySelector('#pinAskMsg').textContent='PIN salah.';i.value='';i.focus()}};
  o.querySelector('#pinOk').onclick=go;o.querySelector('#pinNo').onclick=()=>done(false);i.onkeydown=e=>{if(e.key==='Enter')go();if(e.key==='Escape')done(false)};});}
-['toggleEditStatus','saveClientDriveUrl','saveTemplateBackend','saveCollectiveInvoice','saveSinglePayment','deleteCollectiveInvoice','saveFreelancerSubmit','deleteFreelancer','submitToGoogleForms','pkSave','pkToggle'].forEach(n=>{
+['toggleEditStatus','saveClientDriveUrl','saveTemplateBackend','saveCollectiveInvoice','saveSinglePayment','deleteCollectiveInvoice','saveFreelancerSubmit','deleteFreelancer','updateFreelanceEmailFromModal','submitToGoogleForms','pkSave','pkToggle'].forEach(n=>{
  const f=window[n];if(typeof f!=='function')return;
  window[n]=function(){const a=arguments,self=this;if(a[0]&&a[0].preventDefault)a[0].preventDefault();
   if(n==='saveClientDriveUrl'&&a[1]===true)return f.apply(self,a);   // penyimpanan otomatis: hanya lokal, tidak ke Sheet
@@ -12217,5 +12324,325 @@ html.dark .k52-t time{background:#D6F54A;color:#14201A}
  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('#kCal .k-c[data-t]');if(b)open(new Date(+b.dataset.t))},true);
 })();
 </script>
+
+<style id="ps-v59">
+/* ===== v60 — Pengingat Pemotretan: kartu modern, interaktif, mengikuti ukuran tampilan ===== */
+#upcomingReminder{min-width:0}
+#remBody{--rc-sf:var(--k-sf,#fff);--rc-sf2:var(--k-sf2,#F6F7F3);--rc-ln:var(--k-ln,#E3E6DF);--rc-ink:var(--k-ink,#14201A);--rc-mu:var(--k-mu,#66726B);
+  display:flex!important;flex-direction:column;gap:12px;overflow:hidden!important;min-height:0;container-type:inline-size;container-name:rem}
+#remBody>.flex.items-center{flex:none}
+#remBody #remList{min-width:0;margin-top:0!important;scrollbar-width:thin;scrollbar-color:rgba(120,140,110,.55) transparent;overscroll-behavior:contain}
+#remBody #remList:not(.rc-tbl){-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 26px),transparent);padding-bottom:30px!important}
+#remBody #remList::-webkit-scrollbar{width:6px;height:6px}
+#remBody #remList::-webkit-scrollbar-thumb{background:rgba(120,140,110,.5);border-radius:99px}
+/* lebar: grid, scroll ke bawah */
+#remBody #remList{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))!important;gap:12px;
+  flex:1 1 auto;max-height:clamp(400px,64vh,680px);scroll-snap-type:y proximity;scroll-padding-top:4px;overflow-y:auto;overflow-x:hidden;padding:4px 6px 6px 2px;align-content:start;align-items:start}
+.rc{position:relative;display:flex;flex-direction:column;gap:14px;min-width:0;box-sizing:border-box;padding:18px;scroll-snap-align:start;border-radius:22px;cursor:pointer;
+  background:var(--rc-sf);border:1px solid var(--rc-ln);color:var(--rc-ink);-webkit-tap-highlight-color:transparent;
+  box-shadow:0 1px 2px rgba(20,32,26,.04),0 12px 26px -20px rgba(20,32,26,.35);
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1),box-shadow .3s,border-color .25s,opacity .25s}
+.rc:hover{transform:translateY(-3px);border-color:#B9DD2A;box-shadow:0 18px 36px -22px rgba(23,64,15,.5)}
+.rc:active{transform:scale(.985)}
+.rc:focus-visible{outline:2px solid #17400F;outline-offset:2px}
+.rc.next{border-color:#B9DD2A;box-shadow:0 0 0 3px rgba(214,245,74,.3),0 18px 36px -22px rgba(23,64,15,.45)}
+.rc.done{opacity:.6}.rc.done .rc-name{text-decoration:line-through}
+.rc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.rc-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center}
+.rc-time{min-width:74px;padding:12px 10px;border-radius:16px;display:grid;place-items:center;text-align:center;line-height:1.1;font-variant-numeric:tabular-nums}
+.rc-time b{font-size:21px;font-weight:700;letter-spacing:-.02em}
+.rc-time small{font-size:11px;font-weight:600;opacity:.7;margin-top:3px}
+.rc-time small::before{content:"– "}
+.rc-time i{font-size:16px;opacity:.7}
+.rc.today .rc-time{background:#D6F54A;color:#14201A}
+.rc.tomorrow .rc-time{background:#17400F;color:#D6F54A}
+.rc.week .rc-time{background:var(--rc-sf2);color:var(--rc-ink);border:1px solid var(--rc-ln)}
+.rc-tags{display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-width:0}
+.rc-tag,.rc-cd,.rc-next{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:99px;font-size:11px;font-weight:700;white-space:nowrap}
+.rc-tag{letter-spacing:.07em;background:var(--rc-ink);color:var(--rc-sf)}
+.rc-cd{background:var(--rc-sf2);color:var(--rc-mu);border:1px solid var(--rc-ln);max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.rc-cd.hot{background:#FFE9EA;color:#D12F45;border-color:transparent}
+.rc-cd.live{background:#E3F6CB;color:#2F6B0F;border-color:transparent}
+.rc-next{background:#D6F54A;color:#14201A}
+.rc-name{margin:0;font-size:17px;font-weight:650;letter-spacing:-.015em;color:var(--rc-ink)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-sub{margin:3px 0 0;font-size:12.5px;color:var(--rc-mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-chk{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:13px;color:transparent;background:var(--rc-sf);border:1.5px solid var(--rc-ln);transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+.rc-chk:hover:not(:disabled){border-color:#17400F;color:#17400F;transform:scale(1.08)}
+.rc.done .rc-chk{background:#17400F;border-color:#17400F;color:#D6F54A}
+.rc-chk:disabled{cursor:default}
+.rc-chips{display:flex;flex-wrap:wrap;gap:6px}
+.rc-chips span{display:inline-flex;align-items:center;gap:6px;max-width:100%;height:30px;padding:0 12px;border-radius:99px;background:var(--rc-sf2);font-size:12.5px;color:var(--rc-mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-chips i{font-size:10px;color:var(--rc-ink);opacity:.55;flex:none}
+.rc-more{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.22,1,.36,1)}
+.rc.open .rc-more{grid-template-rows:1fr}
+.rc-more-in{overflow:hidden;min-height:0;display:grid;gap:10px;opacity:0;transition:opacity .3s}
+.rc.open .rc-more-in{opacity:1}
+.rc-dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;margin:0;padding:12px;border-radius:16px;background:var(--rc-sf2)}
+.rc-dl dt{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--rc-mu)}
+.rc-dl dd{margin:3px 0 0;font-size:13.5px;font-weight:600;color:var(--rc-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-dl dd.ok,.rc-pay.ok{color:#2F6B0F}.rc-dl dd.ku,.rc-pay.ku{color:#D12F45}
+.rc-act{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6px}
+.rc-btn{height:40px;min-width:0;padding:0 8px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:650;white-space:nowrap;overflow:hidden;
+  background:var(--rc-sf2);border:1px solid var(--rc-ln);color:var(--rc-ink);transition:transform .25s cubic-bezier(.34,1.56,.64,1),background .2s,color .2s}
+.rc-btn:hover{background:var(--rc-ink);color:var(--rc-sf);transform:translateY(-1px)}
+.rc-btn:active{transform:scale(.95)}
+.rc-btn.wa{background:#17400F;border-color:#17400F;color:#fff}.rc-btn.wa i{color:#D6F54A}
+.rc-btn.wa:hover{background:#0F2D09}
+.rc-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--rc-mu)}
+.rc-pay{display:inline-flex;align-items:center;gap:6px;font-weight:700}.rc-pay i{font-size:10px;opacity:.7}
+.rc-hint{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.rc-hint i{font-size:9px;transition:transform .3s}
+.rc-hint .t-close,.rc.open .rc-hint .t-open{display:none}.rc.open .rc-hint .t-close{display:inline}
+.rc.open .rc-hint i{transform:rotate(180deg)}
+html.dark .rc.tomorrow .rc-time{background:#25401D;color:#D6F54A}
+html.dark .rc-cd.hot{background:rgba(255,154,147,.16);color:#FF9A93}
+html.dark .rc-cd.live{background:rgba(182,238,116,.16);color:#B6EE74}
+html.dark .rc-dl dd.ok,html.dark .rc-pay.ok{color:#B6EE74}html.dark .rc-dl dd.ku,html.dark .rc-pay.ku{color:#FF9A93}
+html.dark .rc-btn.wa{background:#D6F54A;border-color:#D6F54A;color:#14201A}html.dark .rc-btn.wa i{color:#17400F}
+html.dark .rc-chk.x,html.dark .rc.done .rc-chk{background:#D6F54A;border-color:#D6F54A;color:#14201A}
+html.dark .rc-tag{background:#EEF3EF;color:#14201A}
+/* navigasi carousel (hanya tampil di mode kecil) */
+.rc-nav{display:none;align-items:center;justify-content:center;gap:12px;flex:none}
+.rc-nav button{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:11px;background:var(--rc-sf);border:1px solid var(--rc-ln);color:var(--rc-ink);transition:all .2s}
+.rc-nav button:hover:not(:disabled){background:var(--rc-ink);color:var(--rc-sf)}
+.rc-nav button:disabled{opacity:.35;cursor:default}
+.rc-dots{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--rc-mu)}
+.rc-dots i{width:6px;height:6px;border-radius:99px;background:var(--rc-ln);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.rc-dots i.on{width:20px;background:#17400F}
+html.dark .rc-dots i.on{background:#D6F54A}
+/* kecil: satu baris kartu, scroll ke samping */
+@container rem (max-width:559px){
+ #remBody #remList{display:flex!important;flex-direction:row;flex-wrap:nowrap;align-items:flex-start;gap:12px;max-height:none;overflow-x:auto;overflow-y:hidden;
+   scroll-snap-type:x mandatory;padding:6px 2px 10px;scroll-padding-inline:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+ #remBody #remList::-webkit-scrollbar{display:none}
+ #remBody #remList:not(.rc-tbl){-webkit-mask-image:none;mask-image:none;padding-bottom:10px!important}
+ #remBody #remList>.rc{flex:0 0 min(92%,360px);scroll-snap-align:start;scroll-snap-stop:always}
+ #remBody #remList>.col-span-full{flex:1 0 100%;scroll-snap-align:none}
+ .rc-nav.on{display:flex}
+ .rc-time{min-width:56px}.rc-time b{font-size:16px}
+}
+@container rem (max-width:340px){.rc-act{grid-template-columns:1fr 1fr}.rc-act .wa{grid-column:1/-1}}
+@media(max-width:1100px){#kRem #upcomingReminder{min-height:0}}
+@media(min-width:1101px){#view-dashboard #upcomingReminder{max-height:none}}
+@media(prefers-reduced-motion:reduce){.rc,.rc-more,.rc-more-in{transition:none}}
+/* filter tampilan Kartu / Tabel */
+.rc-vsw{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--k-sf2,#F6F7F3);border:1px solid var(--k-ln,#E3E6DF);flex:none}
+.rc-vsw button{height:30px;padding:0 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--k-mu,#66726B);white-space:nowrap;transition:all .2s}
+.rc-vsw button:hover:not(.on){color:var(--k-ink,#14201A)}
+.rc-vsw button.on{background:#17400F;color:#D6F54A;box-shadow:0 6px 14px -8px rgba(23,64,15,.7)}
+html.dark .rc-vsw button.on{background:#D6F54A;color:#14201A}
+@media(max-width:520px){.rc-vsw button span{display:none}.rc-vsw button{padding:0 11px}}
+/* mode tabel */
+#remBody #remList.rc-tbl{display:block!important;overflow:auto!important;max-height:clamp(340px,62vh,640px);padding:0;scroll-snap-type:none;border:1px solid var(--rc-ln);border-radius:18px;background:var(--rc-sf)}
+.rt{width:100%;min-width:780px;border-collapse:separate;border-spacing:0;font-size:13px;color:var(--rc-ink)}
+.rt th{position:sticky;top:0;z-index:2;text-align:left;padding:12px 12px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--rc-mu);background:var(--rc-sf2);border-bottom:1px solid var(--rc-ln);white-space:nowrap}
+.rt td{padding:11px 12px;border-bottom:1px solid var(--rc-ln);vertical-align:middle;white-space:nowrap}
+.rt td:nth-child(5){white-space:normal;min-width:110px;max-width:180px;line-height:1.35}
+.rt .t-time small{display:block;margin-top:2px;font-size:11.5px;font-weight:500;color:var(--rc-mu)}
+.rt .t-pkg span{display:block;margin-bottom:4px;font-weight:600}
+.rt tbody tr{transition:background .15s}
+.rt tbody tr:hover{background:color-mix(in srgb,#D6F54A 16%,transparent)}
+.rt tbody tr:last-child td{border-bottom:0}
+.rt tr.done td:not(.t-chk):not(.t-act){opacity:.55}.rt tr.done .t-name b{text-decoration:line-through}
+.rt .t-cd{display:flex;width:max-content;margin:5px 0 0}
+.rt th:last-child,.rt td.t-act{position:sticky;right:0;background:var(--rc-sf);box-shadow:-10px 0 14px -12px rgba(20,32,26,.25)}
+.rt th:last-child{z-index:3;background:var(--rc-sf2)}
+.rt .t-time{font-weight:700;font-variant-numeric:tabular-nums}
+.rt .t-name b{display:block;font-size:14px;font-weight:650}.rt .t-name small{display:block;margin-top:2px;font-size:11.5px;color:var(--rc-mu)}
+.rt .t-pay{font-weight:700}.rt .t-pay.ok{color:#2F6B0F}.rt .t-pay.ku{color:#D12F45}
+html.dark .rt .t-pay.ok{color:#B6EE74}html.dark .rt .t-pay.ku{color:#FF9A93}
+.rt .t-act{gap:6px}.rt .t-act>*{display:inline-grid;margin-right:6px}
+.rt-b{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:var(--rc-sf2);border:1px solid var(--rc-ln);color:var(--rc-ink);transition:all .2s}
+.rt-b:hover{background:var(--rc-ink);color:var(--rc-sf);transform:translateY(-1px)}
+.rt-b.wa{background:#17400F;border-color:#17400F;color:#D6F54A}
+html.dark .rt-b.wa{background:#D6F54A;border-color:#D6F54A;color:#14201A}
+.rt tr.done .rc-chk{background:#17400F;border-color:#17400F;color:#D6F54A}
+.rt .t-chk{width:52px}
+
+/* ===== v59 — pilihan isi undangan Google Calendar ===== */
+.inv-seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:12px;background:#f1f5f9;border:1px solid #e2e8f0}
+.inv-seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border-radius:9px;font-size:11px;font-weight:700;color:#475569;transition:all .15s;white-space:nowrap}
+.inv-seg button:hover:not(.on){background:#e2e8f0;color:#0f172a}
+.inv-seg button.on{background:#17400F;color:#D6F54A;box-shadow:0 4px 10px -6px rgba(23,64,15,.7)}
+html.dark .inv-seg{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+html.dark .inv-seg button{color:#B0BDA6}
+html.dark .inv-seg button.on{background:#D6F54A;color:#17400F}
+</style>
+<script id="ps-v59-js">
+(function(){
+ var $=function(i){return document.getElementById(i)};
+ var _r=window.renderUpcomingReminders,_t=window.setReminderTab,openIds={};
+ /* render ulang otomatis tiap menit: pertahankan posisi scroll & kartu yang sedang terbuka */
+ if(typeof _r==='function'){window.renderUpcomingReminders=function(){var l=$('remList'),x=l?l.scrollLeft:0,y=l?l.scrollTop:0;
+   if(l)l.querySelectorAll('.rc').forEach(function(c){openIds[c.dataset.id]=c.classList.contains('open')});
+   _r.apply(this,arguments);l=$('remList');if(!l)return;
+   l.querySelectorAll('.rc').forEach(function(c){if(openIds[c.dataset.id]){c.classList.add('open');c.setAttribute('aria-expanded','true')}});
+   l.scrollLeft=x;l.scrollTop=y;nav()}}
+ if(typeof _t==='function'){window.setReminderTab=function(){openIds={};_t.apply(this,arguments);var l=$('remList');if(l){l.scrollLeft=0;l.scrollTop=0}nav()}}
+ /* klik / Enter / Spasi pada kartu = buka-tutup detail */
+ function toggle(c){var o=c.classList.toggle('open');c.setAttribute('aria-expanded',o?'true':'false');openIds[c.dataset.id]=o;
+   if(o&&$('remList')&&$('remList').scrollWidth>$('remList').clientWidth+4){c.scrollIntoView({behavior:'smooth',inline:'nearest',block:'nearest'})}}
+ document.addEventListener('click',function(e){var c=e.target.closest&&e.target.closest('#remList .rc');if(!c||e.target.closest('button,a'))return;toggle(c)});
+ document.addEventListener('keydown',function(e){var c=e.target.closest&&e.target.closest('#remList .rc');if(!c||e.target!==c)return;
+   if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle(c)}});
+ /* navigasi carousel: panah + indikator */
+ var bound=false;
+ function ensureNav(){var l=$('remList');if(!l)return null;var n=$('remNav');
+  if(!n){n=document.createElement('div');n.id='remNav';n.className='rc-nav';
+   n.innerHTML='<button type="button" id="remPrev" aria-label="Sebelumnya"><i class="fa-solid fa-chevron-left"></i></button><div class="rc-dots" id="remDots"></div><button type="button" id="remNext" aria-label="Berikutnya"><i class="fa-solid fa-chevron-right"></i></button>';
+   l.parentNode.insertBefore(n,l.nextSibling);
+   $('remPrev').onclick=function(){go(-1)};$('remNext').onclick=function(){go(1)}}
+  if(!bound){bound=true;l.addEventListener('scroll',function(){requestAnimationFrame(nav)},{passive:true});window.addEventListener('resize',nav)}
+  return n}
+ function cards(){var l=$('remList');return l?[].slice.call(l.querySelectorAll('.rc')):[]}
+ function cur(){var l=$('remList'),cs=cards(),best=0,d=1e9,L=l.getBoundingClientRect().left;cs.forEach(function(c,i){var k=Math.abs(c.getBoundingClientRect().left-L);if(k<d){d=k;best=i}});return best}
+ function go(dir){var l=$('remList'),cs=cards();if(!cs.length)return;var i=Math.max(0,Math.min(cs.length-1,cur()+dir));
+  l.scrollBy({left:cs[i].getBoundingClientRect().left-l.getBoundingClientRect().left-(parseFloat(getComputedStyle(l).paddingLeft)||0),behavior:'smooth'})}
+ function nav(){var n=ensureNav();if(!n)return;var l=$('remList'),cs=cards(),multi=l.scrollWidth>l.clientWidth+4&&getComputedStyle(l).display==='flex';
+  n.classList.toggle('on',cs.length>1&&multi);if(!(cs.length>1&&multi))return;var i=cur(),d=$('remDots');
+  if(cs.length>7){d.innerHTML=(i+1)+' / '+cs.length}else{d.innerHTML=cs.map(function(_,k){return '<i class="'+(k===i?'on':'')+'"></i>'}).join('')}
+  $('remPrev').disabled=l.scrollLeft<=2;$('remNext').disabled=l.scrollLeft+l.clientWidth>=l.scrollWidth-2}
+ window.remAfterRender=function(){requestAnimationFrame(nav)};
+ setTimeout(nav,600);
+})();
+</script>
+<style id="ps-v60-rem">
+/* ===== v60 — Pengingat Pemotretan: tanpa gradasi fade, bingkai rapi, kartu langsung lengkap, tabel konstan ===== */
+
+/* 1) Bingkai bawah dibuat seperti bagian atas (tanpa fade/mask) */
+#upcomingReminder #remBody{padding-bottom:10px}
+#remBody #remList:not(.rc-tbl){
+  -webkit-mask-image:none!important;mask-image:none!important;
+  padding:6px 10px 10px 4px!important;
+  align-items:stretch;
+  scroll-snap-type:y mandatory;scroll-padding-top:6px;
+  max-height:430px; /* cadangan; angka pastinya dihitung otomatis oleh skrip di bawah */
+}
+#remBody #remList::-webkit-scrollbar-thumb{background:rgba(23,64,15,.45)}
+#remBody #remList::-webkit-scrollbar-thumb:hover{background:rgba(23,64,15,.7)}
+html.dark #remBody #remList::-webkit-scrollbar-thumb{background:rgba(214,245,74,.4)}
+
+/* 1b) Kartu: selalu 3 kartu per baris */
+#remBody #remList:not(.rc-tbl){grid-template-columns:repeat(3,minmax(0,1fr))!important}
+@container rem (max-width:899px){
+  #remList:not(.rc-tbl) .rc{padding:14px;gap:11px;border-radius:20px}
+  #remList .rc-time{min-width:60px;padding:9px 6px}#remList .rc-time b{font-size:18px}
+  #remList .rc-name{font-size:15px}
+  #remList .rc-chips span{font-size:11.5px;padding:0 10px}
+  #remList .rc-dl{padding:10px;gap:8px 8px}#remList .rc-dl dd{font-size:12.5px}
+  #remList .rc-btn{font-size:11.5px;padding:0 4px;gap:4px;height:38px}
+  #remList .rc-act{grid-template-columns:1.2fr 1fr 1fr}
+}
+@container rem (max-width:699px) and (min-width:560px){
+  #remBody #remList:not(.rc-tbl){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* 2) Kartu: semua data langsung terlihat (tidak perlu diketuk) */
+#remList .rc{cursor:default}
+#remList .rc .rc-more{grid-template-rows:1fr!important}
+#remList .rc .rc-more-in{opacity:1!important}
+#remList .rc .rc-foot{display:none}
+#remList .rc:active{transform:none}
+
+/* 3) Mode tabel: tanpa scrollbar, ukuran konstan menyesuaikan lebar panel */
+#remBody #remList.rc-tbl{overflow-y:auto!important;overflow-x:hidden!important;max-height:clamp(360px,58vh,540px)!important;padding:0;border-radius:20px;scroll-snap-type:none}
+#remList.rc-tbl .rt{min-width:0;width:100%;table-layout:fixed;font-size:13.5px}
+#remList.rc-tbl .rt th,
+#remList.rc-tbl .rt td{white-space:normal;overflow-wrap:anywhere;padding:13px 10px}
+#remList.rc-tbl .rt th{position:sticky;top:0;z-index:3;font-size:10px}
+#remList.rc-tbl .rt th:nth-child(1){width:52px}
+#remList.rc-tbl .rt th:nth-child(2){width:15%}
+#remList.rc-tbl .rt th:nth-child(3){width:15%}
+#remList.rc-tbl .rt th:nth-child(4){width:19%}
+#remList.rc-tbl .rt th:nth-child(5){width:14%}
+#remList.rc-tbl .rt th:nth-child(6){width:13%}
+#remList.rc-tbl .rt th:nth-child(7){width:13%}
+#remList.rc-tbl .rt th:nth-child(8){width:136px}
+#remList.rc-tbl .rt td:nth-child(5){min-width:0;max-width:none}
+#remList.rc-tbl .rt th:last-child,
+#remList.rc-tbl .rt td.t-act{position:static;box-shadow:none;background:transparent}
+#remList.rc-tbl .rt th:last-child{background:var(--rc-sf2)}
+#remList.rc-tbl .rt tbody tr{cursor:default}
+#remList.rc-tbl .rt tbody tr:hover{background:color-mix(in srgb,#D6F54A 20%,transparent)}
+#remList.rc-tbl .rt .t-cd{max-width:100%;white-space:normal;height:auto;min-height:22px;padding:3px 9px;line-height:1.25}
+#remList.rc-tbl .rt .t-act>*{margin:2px 3px 2px 0}
+#remList.rc-tbl .rt-b{width:38px;height:38px;font-size:14px}
+#remList.rc-tbl .rt-b:active,#remList.rc-tbl .rc-chk:active{transform:scale(.92)}
+
+/* tabel pada panel sempit: sembunyikan kolom yang kurang penting, tetap tanpa scroll */
+@container rem (max-width:760px){
+  #remList.rc-tbl .rt th:nth-child(5),#remList.rc-tbl .rt td:nth-child(5),
+  #remList.rc-tbl .rt th:nth-child(6),#remList.rc-tbl .rt td:nth-child(6){display:none}
+  #remList.rc-tbl .rt th:nth-child(2){width:22%}
+  #remList.rc-tbl .rt th:nth-child(3){width:20%}
+  #remList.rc-tbl .rt th:nth-child(4){width:26%}
+  #remList.rc-tbl .rt th:nth-child(7){width:18%}
+  #remList.rc-tbl .rt th:nth-child(8){width:84px}
+}
+@container rem (max-width:480px){
+  #remList.rc-tbl .rt th:nth-child(2),#remList.rc-tbl .rt td:nth-child(2){display:none}
+  #remList.rc-tbl .rt th:nth-child(1){width:44px}
+  #remList.rc-tbl .rt th:nth-child(3){width:28%}
+  #remList.rc-tbl .rt th:nth-child(4){width:30%}
+  #remList.rc-tbl .rt th:nth-child(7){width:24%}
+  #remList.rc-tbl .rt th:nth-child(8){width:80px}
+  #remList.rc-tbl .rt th,#remList.rc-tbl .rt td{padding:11px 6px}
+}
+</style>
+<script id="ps-v60-rem-js">
+(function(){
+ var $=function(i){return document.getElementById(i)},ro=null,obs=null;
+ /* tinggi area kartu = tepat satu baris kartu penuh; baris berikutnya diakses dengan scroll */
+ function fit(){var l=$('remList');if(!l)return;
+  var flex=getComputedStyle(l).display==='flex';
+  if(l.classList.contains('rc-tbl')||flex){l.style.maxHeight='';return}
+  var c=l.querySelector('.rc');if(!c||!c.offsetHeight){l.style.maxHeight='';return}
+  var cs=getComputedStyle(l),pad=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+  l.style.maxHeight=Math.ceil(c.offsetHeight+pad)+'px';
+  if('ResizeObserver' in window&&obs!==c){if(!ro)ro=new ResizeObserver(function(){fit()});ro.disconnect();ro.observe(c);obs=c}}
+ var prev=window.remAfterRender;
+ window.remAfterRender=function(){if(typeof prev==='function')prev();requestAnimationFrame(fit)};
+ window.addEventListener('resize',function(){requestAnimationFrame(fit)});
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+ setTimeout(fit,700);
+})();
+</script>
+<style id="ps-v62-rem">
+/* ===== v62 — Pengingat: ukuran lebih ringkas, header tabel tetap lengkap ===== */
+/* kartu lebih kecil (3 kartu teratas terlihat utuh) */
+#remBody #remList:not(.rc-tbl){gap:10px;padding:4px 8px 8px 2px!important;scroll-padding-top:4px}
+#remList:not(.rc-tbl) .rc{padding:11px 12px;gap:8px;border-radius:16px}
+#remList .rc-tag,#remList .rc-cd,#remList .rc-next{height:19px;padding:0 7px;font-size:10px}
+#remList .rc-chk{width:24px;height:24px;font-size:10px}
+#remList .rc-row{gap:9px}
+#remList .rc-time{min-width:52px;padding:6px 6px;border-radius:12px}
+#remList .rc-time b{font-size:15px}#remList .rc-time small{font-size:10px;margin-top:1px}
+#remList .rc-name{font-size:13.5px}#remList .rc-sub{font-size:11px;margin-top:1px}
+#remList .rc-chips{gap:4px}
+#remList .rc-chips span{height:24px;padding:0 9px;font-size:10.5px;gap:5px}
+#remList .rc-dl{padding:8px 10px;gap:6px 8px;border-radius:12px}
+#remList .rc-dl dt{font-size:8.5px}#remList .rc-dl dd{font-size:11.5px;margin-top:1px}
+#remList .rc-more-in{gap:8px}
+#remList .rc-btn{height:30px;font-size:11px;gap:4px;padding:0 4px}
+#remList .rc-dl .ph,#remList .rc-dl dd>span{font-size:10px}
+
+/* tabel: header (termasuk "Aksi") selalu tampil, ukuran ringkas */
+#remList.rc-tbl .rt{font-size:12px}
+#remList.rc-tbl .rt th,#remList.rc-tbl .rt th:last-child{position:sticky!important;top:0;z-index:5;padding:9px 8px;font-size:9.5px;background:var(--rc-sf2)!important;box-shadow:none}
+#remList.rc-tbl .rt td{padding:8px 8px}
+#remList.rc-tbl .rt td.t-act{position:static!important;background:transparent!important;box-shadow:none!important;white-space:nowrap;z-index:auto}
+#remList.rc-tbl .rt td.t-act>*{margin:0 3px 0 0}
+#remList.rc-tbl .rt th:nth-child(1){width:42px}
+#remList.rc-tbl .rt th:nth-child(8){width:112px}
+#remList.rc-tbl .rt-b{width:30px;height:30px;font-size:12px}
+#remList.rc-tbl .rc-chk{width:24px;height:24px;font-size:10px}
+#remList.rc-tbl .rt .t-name b{font-size:12.5px}#remList.rc-tbl .rt .t-name small,#remList.rc-tbl .rt .t-time small{font-size:10.5px}
+#remList.rc-tbl .rc-tag,#remList.rc-tbl .rt .t-cd{font-size:9.5px;height:auto;min-height:18px;padding:2px 7px}
+#remList.rc-tbl .rt .t-pkg span{margin-bottom:2px}
+#remList.rc-tbl .rt .t-pkg *{font-size:10px}
+#remBody #remList.rc-tbl{max-height:clamp(320px,52vh,480px)!important}
+@container rem (max-width:760px){#remList.rc-tbl .rt th:nth-child(8){width:100px}}
+@container rem (max-width:480px){#remList.rc-tbl .rt th:nth-child(8){width:70px}#remList.rc-tbl .rt td.t-act{white-space:normal}}
+</style>
 </body>
 </html>
