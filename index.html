@@ -13098,5 +13098,291 @@ html.dark #psdv{background:#1b211e;color:#eef3ef}html.dark #psdv .ic{color:#fff}
  mount();[300,900,2000,4500].forEach(function(t){setTimeout(mount,t)});setInterval(mount,1500);
 })();
 </script>
+<script id="ps-v76-fauzi-js">
+/* v76 - Menu "by Fauzi"
+   Pendapatan Fauzi = Fee Freelance Fauzi (job yang dia foto) + Laba Bersih Stripictures (Fauzi = owner).
+   Laba Bersih memakai rumus yang sama dengan Dashboard: (Uang Masuk + Kekurangan) - Fee Freelance semua fotografer. */
+(function(){
+ if(window.__PS_PORTAL)return;
+ var $=function(id){return document.getElementById(id)};
+ var E=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+ var MN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+ var now0=new Date();
+ var st={mode:'all',m:now0.getMonth()+1,y:now0.getFullYear(),q:''};
+ var active=false;
+
+ var isF=function(c){return /fauzi/i.test(String(c&&c.fotografer||''))};
+ var feeOf=function(c){return c.feeFreelance||c.fee||225000};
+ var rp=function(n){return formatIDR(n||0)};
+ var data=function(){return(typeof rawClientsData!=='undefined'&&rawClientsData)||[]};
+ var dkey=function(c){return(c.parsedYear||0)*10000+(c.parsedMonth||0)*100+(c.parsedDay||0)};
+
+ function scope(){
+  var all=data();
+  if(st.mode!=='month')return all;
+  return all.filter(function(c){return(!c.parsedYear||c.parsedYear===st.y)&&c.parsedMonth===st.m});
+ }
+ function sum(list){
+  var o={n:list.length,omset:0,masuk:0,kurang:0,fee:0};
+  list.forEach(function(c){o.masuk+=c.masuk||0;o.kurang+=c.kekurangan||0;o.fee+=feeOf(c)});
+  o.omset=o.masuk+o.kurang;o.laba=o.omset-o.fee;return o;
+ }
+ function scopeLabel(){return st.mode==='month'?MN[st.m-1]+' '+st.y:'Keseluruhan (semua data)'}
+
+ /* ---------- shell ---------- */
+ var IC='w-full flex items-center gap-2.5 px-3 py-2 font-medium text-slate-600 rounded-lg hover:bg-slate-200/60 hover:text-slate-900 transition-all';
+ var AC='w-full flex items-center gap-2.5 px-3 py-2 font-bold text-slate-900 rounded-lg bg-white shadow-2xs border border-slate-200/60 transition-all';
+ var SEL='bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl px-3 py-1.5 font-bold outline-none';
+
+ function build(){
+  if($('view-fauzi'))return;
+  var anchor=$('view-paket')||$('view-rekapfreelance');if(!anchor)return;
+  var v=document.createElement('div');v.id='view-fauzi';
+  v.className='flex-1 overflow-auto p-4 md:p-6 hidden space-y-5 bg-[#FAFAFA]';
+  v.innerHTML=
+  '<div class="flex flex-wrap items-center justify-between gap-3">'+
+   '<div><h2 class="font-extrabold text-base text-slate-900 flex items-center gap-2"><i class="fa-solid fa-user-tie"></i> by Fauzi</h2>'+
+   '<p class="text-xs text-slate-500">Keuangan Fauzi sebagai fotografer sekaligus owner Stripictures</p></div>'+
+   '<div class="flex flex-wrap items-center gap-2">'+
+    '<div class="inline-flex bg-slate-100 rounded-lg p-0.5 text-[11px] font-bold">'+
+     '<button type="button" id="fzModeAll" onclick="fzSetMode(\'all\')" class="px-3 py-1 rounded-md">Keseluruhan</button>'+
+     '<button type="button" id="fzModeMonth" onclick="fzSetMode(\'month\')" class="px-3 py-1 rounded-md">Per Bulan</button>'+
+    '</div>'+
+    '<select id="fzMonth" onchange="fzSetPeriod()" class="'+SEL+'">'+MN.map(function(n,i){return'<option value="'+(i+1)+'">'+n+'</option>'}).join('')+'</select>'+
+    '<select id="fzYear" onchange="fzSetPeriod()" class="'+SEL+'"></select>'+
+   '</div>'+
+  '</div>'+
+  '<div id="fzKpi"></div>'+
+  '<div id="fzRem"></div>'+
+  '<div id="fzMonthlyWrap"></div>'+
+  '<div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs">'+
+   '<div class="flex flex-wrap items-center justify-between gap-3 mb-3">'+
+    '<div><h3 class="font-bold text-sm text-slate-900 flex items-center gap-2"><i class="fa-solid fa-table-list text-indigo-600"></i> Data Client Fotografer Fauzi</h3>'+
+    '<p id="fzTblSub" class="text-xs text-slate-500"></p></div>'+
+    '<div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[11px]"></i>'+
+    '<input id="fzQ" type="search" placeholder="Cari klien, kampus, paket, lokasi..." oninput="fzSearch(this.value)" class="'+SEL+' pl-8 w-full sm:w-64 font-medium"></div>'+
+   '</div>'+
+   '<div class="overflow-x-auto"><table class="w-full text-xs text-left min-w-[980px]">'+
+    '<thead class="bg-slate-50 border-y border-slate-100 text-slate-500 uppercase font-bold text-[10px]"><tr>'+
+     '<th class="p-2.5">No</th><th class="p-2.5">Tanggal</th><th class="p-2.5">Waktu</th><th class="p-2.5">Klien</th><th class="p-2.5">Paket</th><th class="p-2.5">Lokasi</th>'+
+     '<th class="p-2.5 text-right">Omset</th><th class="p-2.5 text-right">Uang Masuk</th><th class="p-2.5 text-right">Kekurangan</th><th class="p-2.5 text-right">Fee Fauzi</th><th class="p-2.5 text-center">Status</th>'+
+    '</tr></thead>'+
+    '<tbody id="fzTbody" class="divide-y divide-slate-100"></tbody>'+
+    '<tfoot id="fzTfoot" class="bg-slate-50/80 font-bold border-t-2 border-slate-200 text-slate-900 text-xs"></tfoot>'+
+   '</table></div>'+
+  '</div>';
+  anchor.after(v);
+
+  var b=document.createElement('button');b.id='nav-fauzi';b.className=IC;
+  b.onclick=function(){switchView('fauzi')};
+  b.innerHTML='<i class="fa-solid fa-user-tie"></i> by Fauzi';
+  var after=$('nav-rekapfreelance')||$('nav-templatepesan');
+  if(after)after.after(b);
+
+  v.addEventListener('click',function(e){
+   var r=e.target.closest('[data-fzid]');
+   if(r&&typeof openClientDetailModal==='function'){openClientDetailModal(r.getAttribute('data-fzid'));return}
+   var mb=e.target.closest('[data-fzm]');
+   if(mb){var p=mb.getAttribute('data-fzm').split('-');st.mode='month';st.y=+p[0];st.m=+p[1];syncControls();renderAll();v.scrollTo&&v.scrollTo({top:0,behavior:'smooth'})}
+  });
+ }
+
+ /* ---------- controls ---------- */
+ function years(){
+  var s={};s[now0.getFullYear()]=1;
+  data().forEach(function(c){if(c.parsedYear)s[c.parsedYear]=1});
+  return Object.keys(s).map(Number).sort(function(a,b){return b-a});
+ }
+ function syncControls(){
+  var ys=years();if(ys.indexOf(st.y)<0)ys.unshift(st.y);
+  var ye=$('fzYear'),me=$('fzMonth');if(!ye||!me)return;
+  ye.innerHTML=ys.map(function(y){return'<option value="'+y+'">'+y+'</option>'}).join('');
+  ye.value=String(st.y);me.value=String(st.m);
+  var mo=st.mode==='month';
+  me.style.display=mo?'':'none';ye.style.display=mo?'':'none';
+  var on='px-3 py-1 rounded-md bg-white shadow-2xs text-slate-900',off='px-3 py-1 rounded-md text-slate-500';
+  $('fzModeAll').className=mo?off:on;$('fzModeMonth').className=mo?on:off;
+ }
+ window.fzSetMode=function(m){st.mode=m;syncControls();renderAll()};
+ window.fzSetPeriod=function(){st.m=+$('fzMonth').value;st.y=+$('fzYear').value;renderAll()};
+ window.fzSearch=function(v){st.q=String(v||'').toLowerCase().trim();renderTable()};
+
+ /* ---------- KPI ---------- */
+ function renderKpi(){
+  var S=scope(),a=sum(S),f=sum(S.filter(isF)),total=f.fee+a.laba;
+  var card='bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs';
+  var lb='text-[10px] font-bold text-slate-400 uppercase tracking-wider';
+  $('fzKpi').innerHTML=
+  '<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">'+
+   '<div class="col-span-2 p-5 rounded-2xl shadow-2xs text-white" style="background:#111827">'+
+    '<p class="text-[10px] font-bold uppercase tracking-wider" style="color:#9ca3af">Total Keuangan Fauzi · '+E(scopeLabel())+'</p>'+
+    '<h3 class="text-2xl sm:text-3xl font-extrabold mt-1 text-white">'+rp(total)+'</h3>'+
+    '<p class="text-[11px] mt-2" style="color:#d1d5db">Fee Freelance Fauzi '+rp(f.fee)+' <b class="text-white">+</b> Laba Bersih Stripictures '+rp(a.laba)+'</p>'+
+   '</div>'+
+   '<div class="'+card+'"><p class="'+lb+'">Fee Freelance Fauzi</p>'+
+    '<h3 class="text-lg sm:text-xl font-extrabold text-amber-600 mt-1">'+rp(f.fee)+'</h3>'+
+    '<span class="text-[10px] text-amber-600 font-medium">'+f.n+' sesi dipotret Fauzi (dari '+a.n+' sesi studio)</span></div>'+
+   '<div class="'+card+'"><p class="'+lb+'">Laba Bersih Stripictures</p>'+
+    '<h3 class="text-lg sm:text-xl font-extrabold text-teal-600 mt-1">'+rp(a.laba)+'</h3>'+
+    '<span class="text-[10px] text-teal-600 font-medium">Omset '+rp(a.omset)+' − Fee tim '+rp(a.fee)+'</span></div>'+
+  '</div>';
+ }
+
+ /* ---------- Pengingat pemotretan terdekat ---------- */
+ function upcoming(){
+  return data().filter(isF).map(function(c){return{c:c,d:remDayDiff(c)}})
+   .filter(function(x){return x.d!==null&&x.d>=0&&!remIsPast(x.c)})
+   .sort(function(a,b){var sa=remStartMinutes(a.c),sb=remStartMinutes(b.c);return a.d-b.d||(sa==null?9999:sa)-(sb==null?9999:sb)});
+ }
+ function hm(m){return m==null?'':String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+ function renderRem(){
+  var L=upcoming(),box=$('fzRem');
+  var head='<div class="flex items-center justify-between mb-3"><h3 class="font-bold text-sm text-slate-900 flex items-center gap-2"><i class="fa-solid fa-bell text-orange-500"></i> Pengingat Pemotretan Terdekat</h3>'+
+           '<span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">'+L.length+' sesi mendatang</span></div>';
+  if(!L.length){
+   box.innerHTML='<div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">'+head+
+    '<div class="text-center py-6 text-slate-400"><i class="fa-regular fa-calendar-check text-2xl mb-2 block text-emerald-500"></i><p class="text-xs font-semibold">Belum ada jadwal pemotretan Fauzi yang akan datang.</p></div></div>';
+   return;
+  }
+  var n=L[0],c=n.c,cd=remCountdown(c,n.d),t1=hm(remStartMinutes(c)),t2=hm(remEndMinutes(c));
+  var tag=n.d===0?'HARI H':'H-'+n.d,lunas=(c.kekurangan||0)<=0;
+  var sub=[c.univ,c.fakultas].filter(function(x){return x&&x!=='-'}).join(' • ');
+  var main=
+   '<div class="rounded-xl border border-orange-200 bg-orange-50/60 p-4 cursor-pointer" data-fzid="'+E(c.id)+'">'+
+    '<div class="flex flex-wrap items-center gap-2 mb-2">'+
+     '<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-orange-500 text-white">'+tag+'</span>'+
+     '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full '+cd.cls+'">'+E(cd.txt)+'</span>'+
+     '<span class="text-[10px] font-bold text-orange-700">BERIKUTNYA</span>'+
+    '</div>'+
+    '<div class="flex items-start gap-3">'+
+     '<div class="text-center flex-shrink-0 min-w-[56px]"><div class="text-lg font-extrabold text-slate-900 leading-none">'+(t1||'--:--')+'</div>'+(t2?'<div class="text-[10px] text-slate-500 mt-1">s/d '+t2+'</div>':'')+'</div>'+
+     '<div class="min-w-0 flex-1"><h4 class="font-extrabold text-sm text-slate-900 truncate">'+E(c.klien||'-')+'</h4>'+
+      (sub?'<p class="text-[11px] text-slate-500 truncate">'+E(sub)+'</p>':'')+
+      '<div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[11px] text-slate-600">'+
+       '<span><i class="fa-regular fa-calendar mr-1"></i>'+E(c.tanggal||'-')+'</span>'+
+       '<span><i class="fa-solid fa-location-dot mr-1"></i>'+E(c.tempat||'-')+'</span>'+
+       '<span><i class="fa-solid fa-camera mr-1"></i>'+E(c.paket||'-')+'</span>'+
+       '<span class="'+(lunas?'text-emerald-600':'text-rose-600')+' font-bold">'+(lunas?'LUNAS':'Sisa '+rp(c.kekurangan))+'</span>'+
+       '<span class="text-amber-600 font-bold">Fee '+rp(feeOf(c))+'</span>'+
+      '</div></div>'+
+    '</div></div>';
+  var rest=L.slice(1,6).map(function(x){
+   var k=x.c,s=hm(remStartMinutes(k));
+   return'<div class="flex items-center gap-3 py-2 cursor-pointer hover:bg-slate-50 rounded-lg px-2" data-fzid="'+E(k.id)+'">'+
+    '<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 w-10 text-center flex-shrink-0">H-'+x.d+'</span>'+
+    '<div class="min-w-0 flex-1"><p class="text-xs font-bold text-slate-900 truncate">'+E(k.klien||'-')+'</p>'+
+    '<p class="text-[10px] text-slate-500 truncate">'+E(k.tanggal||'-')+(s?' • '+s:'')+' • '+E(k.tempat||'-')+'</p></div>'+
+    '<span class="text-[10px] font-bold text-slate-500 flex-shrink-0 hidden sm:inline">'+E(k.paket||'')+'</span></div>';
+  }).join('');
+  box.innerHTML='<div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs">'+head+main+
+   (rest?'<div class="mt-3 divide-y divide-slate-100">'+rest+'</div>':'')+
+   (L.length>6?'<p class="text-[10px] text-slate-400 mt-2 text-center">+ '+(L.length-6)+' sesi lainnya</p>':'')+'</div>';
+ }
+
+ /* ---------- Rekap per bulan (mode keseluruhan) ---------- */
+ function renderMonthly(){
+  var w=$('fzMonthlyWrap');
+  if(st.mode==='month'){w.innerHTML='';return}
+  var map={};
+  data().forEach(function(c){
+   var k=(c.parsedYear&&c.parsedMonth)?c.parsedYear*100+c.parsedMonth:0;
+   var o=map[k]||(map[k]={k:k,y:c.parsedYear||0,m:c.parsedMonth||0,all:[],fz:[]});
+   o.all.push(c);if(isF(c))o.fz.push(c);
+  });
+  var rows=Object.keys(map).map(function(k){return map[k]}).sort(function(a,b){return b.k-a.k});
+  if(!rows.length){w.innerHTML='';return}
+  var T={n:0,fee:0,laba:0,tot:0};
+  var body=rows.map(function(o){
+   var a=sum(o.all),f=sum(o.fz),tot=f.fee+a.laba;
+   T.n+=f.n;T.fee+=f.fee;T.laba+=a.laba;T.tot+=tot;
+   var lbl=o.k?MN[o.m-1]+' '+o.y:'Tanpa tanggal';
+   var cell=o.k?'<button type="button" data-fzm="'+o.y+'-'+o.m+'" class="font-bold text-indigo-600 hover:underline">'+lbl+'</button>':'<span class="font-bold text-slate-500">'+lbl+'</span>';
+   return'<tr class="hover:bg-slate-50"><td class="p-2.5">'+cell+'</td><td class="p-2.5 text-center">'+f.n+'</td>'+
+    '<td class="p-2.5 text-right text-amber-600 font-semibold">'+rp(f.fee)+'</td>'+
+    '<td class="p-2.5 text-right text-teal-600 font-semibold">'+rp(a.laba)+'</td>'+
+    '<td class="p-2.5 text-right font-extrabold text-slate-900">'+rp(tot)+'</td></tr>';
+  }).join('');
+  w.innerHTML='<div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-2xs">'+
+   '<div class="mb-3"><h3 class="font-bold text-sm text-slate-900 flex items-center gap-2"><i class="fa-solid fa-calendar-days text-teal-600"></i> Rekap Keuangan Fauzi per Bulan</h3>'+
+   '<p class="text-xs text-slate-500">Klik nama bulan untuk melihat detail bulan tersebut.</p></div>'+
+   '<div class="overflow-x-auto"><table class="w-full text-xs text-left min-w-[560px]"><thead class="bg-slate-50 border-y border-slate-100 text-slate-500 uppercase font-bold text-[10px]"><tr>'+
+   '<th class="p-2.5">Bulan</th><th class="p-2.5 text-center">Sesi Fauzi</th><th class="p-2.5 text-right">Fee Freelance Fauzi</th><th class="p-2.5 text-right">Laba Bersih Stripictures</th><th class="p-2.5 text-right">Total Fauzi</th></tr></thead>'+
+   '<tbody class="divide-y divide-slate-100">'+body+'</tbody>'+
+   '<tfoot class="bg-slate-50/80 font-bold border-t-2 border-slate-200 text-slate-900"><tr><td class="p-2.5">Total</td><td class="p-2.5 text-center">'+T.n+'</td><td class="p-2.5 text-right">'+rp(T.fee)+'</td><td class="p-2.5 text-right">'+rp(T.laba)+'</td><td class="p-2.5 text-right">'+rp(T.tot)+'</td></tr></tfoot>'+
+   '</table></div></div>';
+ }
+
+ /* ---------- Tabel client Fauzi ---------- */
+ function renderTable(){
+  var S=scope().filter(isF);
+  var q=st.q;
+  if(q)S=S.filter(function(c){return[c.klien,c.univ,c.fakultas,c.paket,c.tempat,c.tanggal].join(' ').toLowerCase().indexOf(q)>-1});
+  S=S.slice().sort(function(a,b){return st.mode==='month'?dkey(a)-dkey(b):dkey(b)-dkey(a)});
+  $('fzTblSub').textContent=scopeLabel()+' · '+S.length+' client'+(q?' (hasil pencarian)':'');
+  var tb=$('fzTbody'),tf=$('fzTfoot');
+  if(!S.length){
+   tb.innerHTML='<tr><td colspan="11" class="text-center py-8 text-slate-400">'+(q?'Tidak ada client yang cocok dengan pencarian.':'Belum ada client dengan fotografer Fauzi pada periode ini.')+'</td></tr>';
+   tf.innerHTML='';return;
+  }
+  var T=sum(S);
+  tb.innerHTML=S.map(function(c,i){
+   var d=remDayDiff(c),past=remIsPast(c),lunas=(c.kekurangan||0)<=0;
+   var tagH=(d!==null&&d>=0&&!past)?'<span class="ml-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-orange-500 text-white">'+(d===0?'HARI H':'H-'+d)+'</span>':'';
+   var sub=[c.univ,c.fakultas].filter(function(x){return x&&x!=='-'}).join(' • ');
+   var om=(c.masuk||0)+(c.kekurangan||0);
+   return'<tr class="hover:bg-slate-50 cursor-pointer" data-fzid="'+E(c.id)+'">'+
+    '<td class="p-2.5 text-slate-400">'+(i+1)+'</td>'+
+    '<td class="p-2.5 whitespace-nowrap font-medium text-slate-700">'+E(c.tanggal||'-')+tagH+'</td>'+
+    '<td class="p-2.5 whitespace-nowrap text-slate-600">'+E(c.waktu||'-')+'</td>'+
+    '<td class="p-2.5"><div class="font-bold text-slate-900">'+E(c.klien||'-')+'</div>'+(sub?'<div class="text-[10px] text-slate-400">'+E(sub)+'</div>':'')+'</td>'+
+    '<td class="p-2.5 whitespace-nowrap text-slate-600">'+E(c.paket||'-')+'</td>'+
+    '<td class="p-2.5 text-slate-600">'+E(c.tempat||'-')+'</td>'+
+    '<td class="p-2.5 text-right whitespace-nowrap">'+rp(om)+'</td>'+
+    '<td class="p-2.5 text-right whitespace-nowrap text-emerald-600">'+rp(c.masuk)+'</td>'+
+    '<td class="p-2.5 text-right whitespace-nowrap '+(lunas?'text-slate-400':'text-rose-600 font-semibold')+'">'+rp(c.kekurangan)+'</td>'+
+    '<td class="p-2.5 text-right whitespace-nowrap text-amber-600 font-semibold">'+rp(feeOf(c))+'</td>'+
+    '<td class="p-2.5 text-center"><span class="text-[9px] font-bold px-2 py-0.5 rounded-full '+(lunas?'bg-emerald-50 text-emerald-700':'bg-rose-50 text-rose-600')+'">'+(lunas?'LUNAS':'BELUM LUNAS')+'</span></td></tr>';
+  }).join('');
+  tf.innerHTML='<tr><td class="p-2.5" colspan="6">Total · '+T.n+' client</td><td class="p-2.5 text-right">'+rp(T.omset)+'</td><td class="p-2.5 text-right">'+rp(T.masuk)+'</td><td class="p-2.5 text-right">'+rp(T.kurang)+'</td><td class="p-2.5 text-right">'+rp(T.fee)+'</td><td></td></tr>';
+ }
+
+ function renderAll(){
+  if(!$('view-fauzi'))return;
+  try{renderKpi();renderRem();renderMonthly();renderTable()}catch(e){console.warn('Fauzi view:',e)}
+ }
+
+ /* ---------- kaitkan ke navigasi & pemuatan data ---------- */
+ function init(){
+  build();
+  if(!$('view-fauzi'))return false;
+  syncControls();
+  return true;
+ }
+ init();
+ if(!$('view-fauzi'))window.addEventListener('load',init);
+
+ var sv0=window.switchView;
+ window.switchView=function(v){
+  var r=sv0.apply(this,arguments);
+  var el=$('view-fauzi'),nb=$('nav-fauzi');
+  if(el){
+   el.classList.toggle('hidden',v!=='fauzi');
+   if(nb)nb.className=v==='fauzi'?AC:IC;
+   active=(v==='fauzi');
+   if(active){
+    var bc=$('pageHeaderBreadcrumb');if(bc)bc.innerText='by Fauzi';
+    syncControls();renderAll();
+   }
+  }
+  return r;
+ };
+ if(typeof fetchSheetData==='function'){
+  var fs0=fetchSheetData;
+  fetchSheetData=async function(){var r=await fs0.apply(this,arguments);if(active){syncControls();renderAll()}return r};
+ }
+ /* hitung mundur & data tetap segar selama menu terbuka */
+ setInterval(function(){if(active&&!document.hidden){renderKpi();renderRem();renderMonthly();renderTable()}},30000);
+})();
+</script>
 </body>
 </html>
