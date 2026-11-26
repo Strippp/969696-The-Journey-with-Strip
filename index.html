@@ -3003,6 +3003,61 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
                         </p>
                     </div>
 
+                    <!-- v77: GENERATOR LINK PHOTO SELECTOR (jumlah foto bisa diatur) -->
+                    <div id="glCard" class="bg-white rounded-2xl p-5 shadow-2xs border border-slate-200/80 space-y-4">
+                        <div>
+                            <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-link text-[#f25c05]"></i> Generate Link Photo Selector</h2>
+                            <p class="text-xs text-slate-500 mt-1 leading-relaxed">Buat link Photo Selector untuk client dengan jumlah foto edit yang bisa diatur sendiri (di luar batas paket).</p>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide" for="gl_client">Ambil data dari client (opsional)</label>
+                            <select id="gl_client" onchange="glPick()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none focus:border-slate-400"><option value="">- Isi manual -</option></select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide" for="gl_drive">Link folder Google Drive</label>
+                            <input type="text" id="gl_drive" oninput="glUpdate()" placeholder="https://drive.google.com/drive/folders/..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-mono outline-none focus:border-slate-400">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide" for="gl_nama">Nama client</label>
+                                <input type="text" id="gl_nama" oninput="glUpdate()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none focus:border-slate-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide" for="gl_univ">Universitas</label>
+                                <input type="text" id="gl_univ" oninput="glUpdate()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none focus:border-slate-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide" for="gl_tgl">Tanggal pemotretan</label>
+                                <input type="date" id="gl_tgl" oninput="glUpdate()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none focus:border-slate-400">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide" for="gl_pkg">Paket</label>
+                                <select id="gl_pkg" onchange="glPkgChanged()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none focus:border-slate-400"></select>
+                            </div>
+                        </div>
+                        <div class="rounded-xl border border-orange-100 bg-orange-50/50 p-3 space-y-2">
+                            <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wide" for="gl_max">Jumlah foto yang diedit</label>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="glStep(-1)" aria-label="Kurangi" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50">-</button>
+                                <input type="number" id="gl_max" min="1" max="999" inputmode="numeric" oninput="glMaxTyped()" class="w-24 text-center bg-white border border-slate-200 rounded-lg py-2 text-sm font-extrabold outline-none focus:border-slate-400">
+                                <button type="button" onclick="glStep(1)" aria-label="Tambah" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50">+</button>
+                                <span class="text-xs text-slate-500">foto</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5" id="glChips"></div>
+                            <p class="text-[11px] text-slate-500" id="glMaxHint"></p>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 mb-1.5 uppercase tracking-wide" for="gl_out">Link Photo Selector</label>
+                            <textarea id="gl_out" readonly rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] font-mono outline-none resize-none" placeholder="Link akan muncul otomatis setelah data lengkap"></textarea>
+                            <p id="glProblems" class="text-[11px] text-rose-500 mt-1.5 hidden"></p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" id="glCopyBtn" onclick="glCopy()" class="px-3 py-2.5 bg-[#111827] hover:bg-black text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"><i class="fa-regular fa-copy"></i> Salin</button>
+                            <button type="button" onclick="glOpen()" class="px-3 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka</button>
+                            <button type="button" id="glWaBtn" onclick="glWa()" class="px-3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                        </div>
+                    </div>
+
                     <div class="bg-white rounded-2xl p-5 shadow-2xs border border-slate-200/80 space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-800 mb-2 uppercase tracking-wide" for="ps_nama_kampus">
@@ -5670,6 +5725,7 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
                             <button type="button" onclick="saveClientDriveUrl(clientDetailId)" title="Simpan link Drive" class="w-8 flex-shrink-0 bg-[#111827] hover:bg-black text-white rounded-lg text-[11px] transition-colors"><i class="fa-solid fa-floppy-disk"></i></button>
                             <button type="button" onclick="openClientPhotoSelector(clientDetailId)" title="Buka Photo Selector klien" aria-label="Buka Photo Selector klien" class="w-8 flex-shrink-0 bg-[#111827] hover:bg-black text-white rounded-lg text-[11px] transition-colors"><i class="fa-solid fa-images"></i></button>
                         </div>
+                        ${typeof driveSentBox === 'function' ? driveSentBox(item) : ''}
                     </div>
                 </div>
 
@@ -5758,7 +5814,7 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
         }
 
         // Mengembalikan '' bila ada data kosong/tidak valid (tidak pernah membuat link rusak)
-        function buildClientPortalUrl(client, driveUrl) {
+        function buildClientPortalUrl(client, driveUrl, maxPhoto) {
             if (getPortalMissingFields(client, driveUrl).length) return '';
             const { drive, nama, univ, tgl, pkg } = getPortalLinkData(client, driveUrl);
             const params = new URLSearchParams();
@@ -5767,6 +5823,8 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
             params.set('univ', univ);
             params.set('tgl', tgl);
             params.set('pkg', pkg);
+            const mx = parseInt(maxPhoto, 10);
+            if (mx > 0) params.set('max', String(Math.min(mx, 999)));   // v77: batas foto edit khusus link ini
             return PHOTO_SELECTOR_BASE + params.toString();
         }
 
@@ -5978,6 +6036,8 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
 
             const pkgConfig = PACKAGE_PRICES[clientPkg] || { maxPhoto: 20 };
             portalMaxPhotoCount = pkgConfig.maxPhoto || 20;
+            const pMaxOverride = parseInt(params.get('max'), 10);   // v77: jumlah foto edit dari link (mengalahkan paket)
+            if (pMaxOverride > 0 && pMaxOverride <= 999) portalMaxPhotoCount = pMaxOverride;
 
             document.getElementById('portalClientHeader').innerText = displayName;
             document.getElementById('portalPkgName').innerText = String(clientPkg).toUpperCase();
@@ -6735,13 +6795,14 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
             tbody.innerHTML = data.map((item, index) => {
                 const clientDataJson = JSON.stringify(item).replace(/'/g, "&apos;");
                 return `
-                    <tr class="transition-colors cs-row" ondblclick='openChatModal(${clientDataJson})'>
+                    <tr class="transition-colors cs-row${typeof getDriveSent === 'function' && getDriveSent(item) ? ' ds-sent' : ''}" ondblclick='openChatModal(${clientDataJson})'>
                         <td class="p-3 text-center text-slate-400 font-medium">${index + 1}</td>
                         <td class="p-3">
                             <button onclick='openChatModal(${clientDataJson})' class="font-bold text-slate-900 hover:text-[#f25c05] text-left transition-colors flex items-center gap-1.5 group">
                                 <span>${item.klien || '-'}</span><i class="fa-regular fa-comment-dots text-slate-300 group-hover:text-[#f25c05] text-[11px]"></i>
                             </button>
                             ${item.whatsapp ? `<div class="text-[10px] text-slate-400 font-mono">${item.whatsapp}</div>` : ''}
+                            ${typeof driveSentBadge === 'function' ? driveSentBadge(item, false) : ''}
                         </td>
                         <td class="p-3">${photoBadge(item.fotografer)}</td>
                         <td class="p-3"><div class="font-medium text-slate-800">${item.tanggal || '-'}</div><div class="text-[10px] text-slate-400 font-mono">${item.waktu || '-'}</div></td>
@@ -12854,6 +12915,7 @@ html.dark .csm-act button.wa{background:hsl(calc(var(--th-d) + 70.9) 89.5% 62.5%
    +f('Kampus',esc(it.univ||'-'))+f('Fakultas',esc(it.fakultas||'-'))
    +(it.whatsapp?f('WhatsApp',esc(it.whatsapp),1):'')
    +(full?f('Status','<span class="csm-st '+stat(it).c+'">'+esc(stat(it).t)+'</span>',1):'')
+   +(typeof driveSentBadge==='function'?f('Link Drive',driveSentBadge(it,true),1):'')
    +f('Uang Masuk','<span style="color:#1f9d4d">'+idr(it.masuk)+'</span>')
    +f('Kekurangan',(it.kekurangan||0)>0?'<span style="color:#d6264a">'+idr(it.kekurangan)+'</span>':'<span style="color:#1f9d4d">Lunas</span>')
    +'<div class="full"><dt>Pembayaran '+pct+'%</dt><div class="csm-bar"><i style="width:'+pct+'%"></i></div></div></dl>';
@@ -12861,19 +12923,19 @@ html.dark .csm-act button.wa{background:hsl(calc(var(--th-d) + 70.9) 89.5% 62.5%
  function acts(){return '<div class="csm-act"><button type="button" class="wa" data-a="chat"><i class="fa-brands fa-whatsapp"></i> Chat</button><button type="button" data-a="detail"><i class="fa-brands fa-google-drive" style="color:#f25c05"></i> Detail</button><button type="button" data-a="edit" aria-label="Edit data client"><i class="fa-solid fa-pen-to-square"></i></button></div>'}
  function card(it,i){
   var s=stat(it),o=opened[key(it,i)]?1:0,ini=esc(String(it.klien||'?').trim().charAt(0).toUpperCase()||'?');
-  return '<article class="csm-card" data-i="'+i+'" data-open="'+o+'">'
+  return '<article class="csm-card'+(typeof getDriveSent==='function'&&getDriveSent(it)?' ds-sent':'')+'" data-i="'+i+'" data-open="'+o+'">'
    +'<div class="csm-hd" role="button" tabindex="0" aria-expanded="'+(o?'true':'false')+'"><span class="csm-av">'+ini+'</span>'
    +'<span class="csm-who"><b>'+esc(it.klien||'-')+'</b><small>'+esc([it.univ,it.fakultas].filter(Boolean).join(' \u2022 ')||'-')+'</small></span>'
    +'<span class="csm-st '+s.c+'">'+esc(s.t)+'</span><i class="fa-solid fa-chevron-down csm-chev"></i></div>'
    +'<div class="csm-meta"><span class="csm-pill"><i class="fa-regular fa-calendar"></i>'+esc(it.tanggal||'-')+'</span><span class="csm-pill"><i class="fa-regular fa-clock"></i>'+esc(it.waktu||'-')+'</span>'
-   +(typeof photoBadge==='function'?photoBadge(it.fotografer):'')+'</div>'
+   +(typeof photoBadge==='function'?photoBadge(it.fotografer):'')+(typeof driveSentBadge==='function'?driveSentBadge(it,false):'')+'</div>'
    +'<div class="csm-more"><div class="csm-more-in">'+dl(it,false)+'</div></div>'+acts()+'</article>';
  }
  function row(it,i){
   var s=stat(it),o=opened[key(it,i)]?1:0;
-  return '<div class="csm-tr" data-i="'+i+'" data-open="'+o+'">'
+  return '<div class="csm-tr'+(typeof getDriveSent==='function'&&getDriveSent(it)?' ds-sent':'')+'" data-i="'+i+'" data-open="'+o+'">'
    +'<div class="csm-tr-main" role="button" tabindex="0" aria-expanded="'+(o?'true':'false')+'">'
-   +'<div class="c1"><b>'+esc(it.klien||'-')+'</b><small>'+esc(it.univ||'-')+'</small></div>'
+   +'<div class="c1"><b>'+esc(it.klien||'-')+(typeof driveSentDot==='function'?driveSentDot(it):'')+'</b><small>'+esc(it.univ||'-')+'</small></div>'
    +'<div class="c2"><b>'+esc(shortDate(it.tanggal))+'</b><small>'+esc(it.waktu||'-')+'</small></div>'
    +'<div class="c3">'+(typeof photoBadge==='function'?photoBadge(it.fotografer):'<span>'+esc(it.fotografer||'-')+'</span>')+'<i class="fa-solid fa-chevron-down csm-chev"></i></div></div>'
    +'<div class="csm-more"><div class="csm-more-in">'+dl(it,true)+acts()+'</div></div></div>';
@@ -13382,6 +13444,155 @@ html.dark #psdv{background:#1b211e;color:#eef3ef}html.dark #psdv .ic{color:#fff}
  }
  /* hitung mundur & data tetap segar selama menu terbuka */
  setInterval(function(){if(active&&!document.hidden){renderKpi();renderRem();renderMonthly();renderTable()}},30000);
+})();
+</script>
+
+<style id="ps-v77-css">
+.ds-badge{display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;line-height:1.5;white-space:nowrap}
+.ds-badge.on{background:#ecfdf5;color:#059669;border:1px solid #d1fae5}
+.ds-badge.off{background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0}
+.ds-badge i{font-size:9px}
+.ds-dot{color:#10b981;font-size:11px;margin-left:5px}
+.gl-chip{padding:4px 10px;border-radius:999px;background:#fff;border:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#475569;cursor:pointer}
+.gl-chip.on{background:#111827;color:#fff;border-color:#111827}
+
+/* v78 — baris/kartu client yang Drive-nya sudah dikirim: hijau samar (lapisan transparan, ikut warna tema & mode gelap) */
+#tableBody tr.cs-row.ds-sent,html.dark #tableBody tr.cs-row.ds-sent,.csm-card.ds-sent,.csm-tr.ds-sent{background-image:linear-gradient(rgba(16,185,129,.10),rgba(16,185,129,.10))!important}
+.csm-card.ds-sent{border-color:rgba(16,185,129,.35)!important}
+.csm-tr.ds-sent{border-bottom-color:rgba(16,185,129,.28)!important}
+#tableBody tr.cs-row.ds-sent td:first-child{box-shadow:inset 3px 0 0 rgba(16,185,129,.55)}
+#tableBody tr.cs-row.ds-sent:hover td:first-child{box-shadow:inset 3px 0 0 #10b981}
+html.dark #tableBody tr.cs-row.ds-sent,html.dark .csm-card.ds-sent,html.dark .csm-tr.ds-sent{background-image:linear-gradient(rgba(16,185,129,.16),rgba(16,185,129,.16))!important}
+</style>
+<script id="ps-v77-js">
+/* v77 — (1) indikator & penanda manual "Link Drive sudah dikirim"  (2) generator link Photo Selector dengan jumlah foto bisa diatur */
+(function(){
+ var $=function(i){return document.getElementById(i)};
+ var H=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+
+ /* ---------- (1) Drive terkirim ---------- */
+ function dsKey(it){return it&&it.stableKey?'dsent:'+it.stableKey:''}
+ window.getDriveSent=function(it){var k=dsKey(it);if(!k)return null;var v=PSSync.get(k,null);return(v&&v.sent)?v:null};
+ function dsFmt(ts){var d=new Date(ts),p=function(n){return String(n).padStart(2,'0')};
+  return d.getDate()+' '+['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][d.getMonth()]+' '+d.getFullYear()+', '+p(d.getHours())+'.'+p(d.getMinutes())}
+ window.driveSentBadge=function(it,long){
+  var s=getDriveSent(it);
+  if(s)return '<div><span class="ds-badge on" title="Link Drive sudah dikirim"><i class="fa-solid fa-circle-check"></i> Drive terkirim'+(long&&s.at?' \u2022 '+dsFmt(s.at):'')+'</span></div>';
+  return long?'<div><span class="ds-badge off"><i class="fa-regular fa-circle"></i> Belum dikirim</span></div>':'';
+ };
+ window.driveSentDot=function(it){return getDriveSent(it)?'<i class="fa-solid fa-circle-check ds-dot" title="Link Drive sudah dikirim"></i>':''};
+ window.driveSentBox=function(it){
+  var s=getDriveSent(it);
+  return '<div id="dsBox_'+H(it.id)+'" class="flex items-center justify-between gap-2 pt-2 mt-1 border-t border-slate-100">'
+   +'<div class="min-w-0"><p class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-none">Status pengiriman Drive</p>'
+   +'<p class="text-[11px] font-bold mt-1 '+(s?'text-emerald-600':'text-slate-500')+'">'+(s?'<i class="fa-solid fa-circle-check"></i> Sudah dikirim'+(s.at?' \u2022 '+H(dsFmt(s.at)):'')+(s.via==='manual'?' (manual)':''):'<i class="fa-regular fa-circle"></i> Belum dikirim')+'</p></div>'
+   +'<button type="button" onclick="toggleDriveSent(clientDetailId)" class="flex-shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors '+(s?'bg-white text-slate-600 border-slate-200 hover:bg-slate-50':'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700')+'">'+(s?'Batalkan tanda':'<i class="fa-solid fa-check mr-1"></i>Tandai sudah dikirim')+'</button></div>';
+ };
+ function refreshDs(it){
+  try{renderTable(displayedClientsData)}catch(e){}
+  var box=$('dsBox_'+it.id);if(box){var t=document.createElement('div');t.innerHTML=driveSentBox(it);box.replaceWith(t.firstElementChild)}
+ }
+ function dsAskPin(msg){return new Promise(function(res){
+  var o=document.createElement('div');o.className='ps-ov';o.style.zIndex=9600;
+  o.innerHTML='<div class="ps-box" style="max-width:340px"><b class="text-sm">Konfirmasi PIN</b><p class="text-xs text-slate-500 mt-1 mb-3">'+H(msg)+'</p><input id="dsPin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022" style="text-align:center;letter-spacing:6px;font-size:18px"><p id="dsPinMsg" class="text-xs font-semibold text-rose-600 mt-2 min-h-[16px]"></p><div class="flex justify-end gap-2 mt-2"><button class="ps-btn l" id="dsPinNo">Batal</button><button class="ps-btn" id="dsPinOk">Konfirmasi</button></div></div>';
+  document.body.appendChild(o);var i=o.querySelector('#dsPin');i.focus();
+  function done(v){o.remove();res(v)}
+  function go(){if(window.psPinOk&&window.psPinOk(i.value)){window.__PS_PIN=i.value;done(true)}else{o.querySelector('#dsPinMsg').textContent='PIN salah.';i.value='';i.focus()}}
+  o.querySelector('#dsPinOk').onclick=go;o.querySelector('#dsPinNo').onclick=function(){done(false)};
+  i.onkeydown=function(e){if(e.key==='Enter')go();if(e.key==='Escape'){e.stopPropagation();done(false)}};
+ })}
+ window.toggleDriveSent=function(clientId){
+  var it=rawClientsData.find(function(c){return c.id===clientId});if(!it)return;
+  var k=dsKey(it);if(!k){alert('Client ini belum punya kunci data, tidak bisa ditandai.');return}
+  var cur=!!getDriveSent(it);
+  dsAskPin(cur?'Masukkan PIN untuk membatalkan tanda "Drive terkirim".':'Masukkan PIN untuk menandai link Drive sudah dikirim.').then(function(ok){
+   if(!ok)return;
+   window.__PS_ALLOW=true;
+   try{PSSync.set(k,cur?{sent:false,at:Date.now()}:{sent:true,at:Date.now(),via:'manual'})}finally{window.__PS_ALLOW=false}
+   if(!!getDriveSent(it)===cur){alert('Perubahan gagal disimpan.');return}
+   refreshDs(it);
+  });
+ };
+ try{PSSync.onChange(function(ch){
+  if(!ch||!ch.some(function(k){return String(k).indexOf('dsent:')===0}))return;
+  try{renderTable(displayedClientsData)}catch(e){}
+  try{var m=$('clientDetailModal');if(m&&!m.classList.contains('hidden')){var it=findClientForDetail();if(it)refreshDs(it)}}catch(e){}
+ })}catch(e){}
+
+ /* ---------- (2) Generator link Photo Selector ---------- */
+ var glCur=null,glMaxTouched=false;
+ var v=function(id){var e=$(id);return e?String(e.value||'').trim():''};
+ function glPkgs(extra){
+  var set={},out=[];
+  try{Object.keys(PAKET_DATABASE).forEach(function(k){set[normalizePortalPackage(k)]=1})}catch(e){}
+  if(extra)set[normalizePortalPackage(extra)]=1;
+  Object.keys(set).forEach(function(k){if(k)out.push(k)});return out.sort();
+ }
+ function glFillPkg(sel){
+  var el=$('gl_pkg');if(!el)return;var keep=sel||el.value;
+  el.innerHTML=glPkgs(keep).map(function(k){return '<option value="'+H(k)+'">'+H(k)+'</option>'}).join('');
+  if(keep)el.value=normalizePortalPackage(keep);
+ }
+ window.glRefreshClients=function(){
+  var el=$('gl_client');if(!el)return;var keep=el.value;
+  var list=(typeof rawClientsData!=='undefined'&&rawClientsData)||[];
+  el.innerHTML='<option value="">- Isi manual -</option>'+list.map(function(c){return '<option value="'+H(c.id)+'">'+H((c.klien||'-')+' - '+(c.univ||'-')+(c.tanggal?' ('+c.tanggal+')':''))+'</option>'}).join('');
+  if(keep&&list.some(function(c){return c.id===keep}))el.value=keep;
+  glFillPkg();glChips();glUpdate();
+ };
+ function pkgDefault(){try{return getMaxEditPhoto(v('gl_pkg'))}catch(e){return 20}}
+ function glChips(){
+  var box=$('glChips');if(!box)return;var cur=parseInt(v('gl_max'),10)||0,d=pkgDefault();
+  var vals=[10,15,20,25,30,40,50];if(vals.indexOf(d)<0)vals.push(d);vals.sort(function(a,b){return a-b});
+  box.innerHTML=vals.map(function(n){return '<button type="button" class="gl-chip'+(n===cur?' on':'')+'" onclick="glSetMax('+n+')">'+n+(n===d?' (paket)':'')+'</button>'}).join('');
+ }
+ window.glSetMax=function(n){var e=$('gl_max');if(e)e.value=n;glMaxTouched=true;glChips();glUpdate()};
+ window.glStep=function(d){var e=$('gl_max');var n=(parseInt(e.value,10)||pkgDefault())+d;if(n<1)n=1;if(n>999)n=999;glSetMax(n)};
+ window.glMaxTyped=function(){glMaxTouched=true;glChips();glUpdate()};
+ window.glPkgChanged=function(){if(!glMaxTouched){var e=$('gl_max');if(e)e.value=pkgDefault()}glChips();glUpdate()};
+ window.glPick=function(){
+  var id=v('gl_client');glCur=null;
+  if(!id){glUpdate();return}
+  var c=rawClientsData.find(function(x){return x.id===id});if(!c){glUpdate();return}
+  glCur=c;
+  var set=function(i,val){var e=$(i);if(e)e.value=val||''};
+  set('gl_drive',c.driveUrl||'');set('gl_nama',c.klien||'');set('gl_univ',c.univ||'');
+  set('gl_tgl',normalizePortalDate(c.tanggal));
+  glFillPkg(c.paket);glMaxTouched=false;set('gl_max',pkgDefault());
+  glChips();glUpdate();
+ };
+ function glBuild(){
+  var drive=v('gl_drive'),nama=v('gl_nama'),univ=v('gl_univ'),tgl=v('gl_tgl'),pkg=v('gl_pkg'),mx=v('gl_max');
+  var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(tgl),d=m?new Date(+m[1],+m[2]-1,+m[3]):null;
+  var fake={klien:nama,univ:univ,tanggal:d,paket:pkg};
+  var problems=getPortalMissingFields(fake,drive);
+  var n=parseInt(mx,10);
+  if(!(n>=1&&n<=999))problems.push('Jumlah foto edit (isi angka 1-999)');
+  return{problems:problems,link:problems.length?'':buildClientPortalUrl(fake,drive,n),max:n,nama:nama,univ:univ,drive:drive};
+ }
+ window.glUpdate=function(){
+  var out=$('gl_out');if(!out)return;var r=glBuild();
+  out.value=r.link;
+  var p=$('glProblems');if(p){if(r.problems.length&&(v('gl_drive')||v('gl_nama')||v('gl_univ')||glCur)){p.textContent='Belum lengkap: '+r.problems.join(', ');p.classList.remove('hidden')}else p.classList.add('hidden')}
+  var h=$('glMaxHint');if(h){var d=pkgDefault();h.textContent=r.max>0?('Client bisa memilih '+r.max+' foto'+(r.max===d?' (sesuai paket).':' (paket '+v('gl_pkg')+' default '+d+' foto).')+' Extra edit di halaman client tetap menambah batas ini.'):''}
+  var wa=$('glWaBtn');if(wa){var ok=!!(glCur&&glCur.whatsapp&&r.link);wa.disabled=!ok;wa.style.opacity=ok?'1':'.45';wa.title=ok?'':'Pilih client yang punya nomor WhatsApp'}
+ };
+ window.glCopy=function(){
+  var r=glBuild();if(!r.link){alert('Link belum bisa dibuat.\n- '+r.problems.join('\n- '));return}
+  var b=$('glCopyBtn'),done=function(){if(b){var o=b.innerHTML;b.innerHTML='<i class="fa-solid fa-check"></i> Tersalin';setTimeout(function(){b.innerHTML=o},1500)}};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(r.link).then(done,function(){var o=$('gl_out');o.select();document.execCommand('copy');done()});
+  else{var o=$('gl_out');o.select();document.execCommand('copy');done()}
+ };
+ window.glOpen=function(){var r=glBuild();if(!r.link){alert('Link belum bisa dibuat.\n- '+r.problems.join('\n- '));return}window.open(r.link,'_blank')};
+ window.glWa=function(){
+  var r=glBuild();if(!r.link){alert('Link belum bisa dibuat.\n- '+r.problems.join('\n- '));return}
+  if(!glCur||!glCur.whatsapp){alert('Pilih client yang punya nomor WhatsApp dulu.');return}
+  var msg=replaceTemplateVariables(templatesState.drive,Object.assign({},glCur,{link_google_drive:r.drive,link_client:r.link,jumlah_edit:r.max+' foto'}));
+  openWaPreviewModal(glCur.whatsapp,msg,function(p,m){window.open('https://wa.me/'+p+'?text='+encodeURIComponent(m),'_blank')},'Selector & Drive: '+(glCur.klien||''));
+ };
+ try{var sv0=switchView;switchView=function(n){var r=sv0.apply(this,arguments);if(n==='photoselector'){try{glRefreshClients()}catch(e){}}return r}}catch(e){}
+ try{PSSync.onChange(function(){if(typeof currentView!=='undefined'&&currentView==='photoselector'){try{glRefreshClients()}catch(e){}}})}catch(e){}
+ document.addEventListener('DOMContentLoaded',function(){try{glFillPkg();glChips();glUpdate()}catch(e){}});
 })();
 </script>
 </body>
