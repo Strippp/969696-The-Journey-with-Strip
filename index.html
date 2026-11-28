@@ -7612,8 +7612,8 @@ html.dark #psAdminBoot .ab-bar{background:rgba(255,255,255,.12)}
                 if (wkFrom && (dk(it) < wkFrom || dk(it) > wkTo)) return false;
                 const hay = [it.klien, it.fotografer, it.univ, it.fakultas, it.tempat, it.whatsapp].join(' ').toLowerCase();
                 return (!q || hay.includes(q))
-                    && (fm === 'ALL' || !it.parsedMonth || String(it.parsedMonth) === fm)
-                    && (fy === 'ALL' || !it.parsedYear || String(it.parsedYear) === fy)
+                    && (dq || wkFrom || fm === 'ALL' || !it.parsedMonth || String(it.parsedMonth) === fm)
+                    && (dq || wkFrom || fy === 'ALL' || !it.parsedYear || String(it.parsedYear) === fy)
                     && (ff === 'ALL' || it.fotografer === ff)
                     && (st === 'ALL' || (st === 'LUNAS' ? (it.kekurangan || 0) <= 0 : (it.kekurangan || 0) > 0));
             });
@@ -13593,6 +13593,86 @@ html.dark #tableBody tr.cs-row.ds-sent,html.dark .csm-card.ds-sent,html.dark .cs
  try{var sv0=switchView;switchView=function(n){var r=sv0.apply(this,arguments);if(n==='photoselector'){try{glRefreshClients()}catch(e){}}return r}}catch(e){}
  try{PSSync.onChange(function(){if(typeof currentView!=='undefined'&&currentView==='photoselector'){try{glRefreshClients()}catch(e){}}})}catch(e){}
  document.addEventListener('DOMContentLoaded',function(){try{glFillPkg();glChips();glUpdate()}catch(e){}});
+})();
+</script>
+
+<style id="ps-v79-fix">
+/* v79: Filter Cepat di mobile (aturan lama v28 menyembunyikannya selamanya) */
+@media (max-width:767px){
+  html body #view-customer #kCp #customerQuickBar{display:flex!important;flex-wrap:wrap;gap:8px!important;width:100%}
+  html body #view-customer #kCp #customerQuickBar .cs-pill{display:inline-flex!important;align-items:center;justify-content:center;flex:1 1 calc(50% - 8px);min-height:42px;padding:8px 12px!important;font-size:13px!important}
+  html body #view-customer #kCp #customerQuickBar > span,
+  html body #view-customer #kCp #customerQuickBar > button.ml-auto{display:none!important}
+  html body #view-customer #kCp{-webkit-overflow-scrolling:touch}
+}
+</style>
+<script id="ps-v79-js">
+(function(){
+  'use strict';
+  /* ---- Filter Cepat: tutup panel setelah memilih (mobile) ---- */
+  document.addEventListener('click',function(e){
+    var p=e.target.closest&&e.target.closest('#kCp #customerQuickBar .cs-pill');
+    if(!p||!window.matchMedia('(max-width:767px)').matches)return;
+    setTimeout(function(){var pop=document.getElementById('kCp'),b=document.getElementById('kFb');if(pop&&!pop.hidden&&b)b.click()},220);
+  });
+
+  /* ---- WhatsApp: pengkodean aman (+, &, #, %, baris baru, dll tidak rusak) ---- */
+  function enc(t){
+    return encodeURIComponent(t).replace(/[!'()*~]/g,function(c){return '%'+c.charCodeAt(0).toString(16).toUpperCase()});
+  }
+  var isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent));
+  function parseWa(u){
+    var m=/^https?:\/\/wa\.me\/(\d*)(?:\?(.*))?$/i.exec(String(u||''));
+    if(!m)return null;
+    var text='';
+    if(m[2]){
+      var q=m[2].split('&');
+      for(var i=0;i<q.length;i++){
+        if(q[i].slice(0,5)==='text='){
+          var raw=q[i].slice(5);
+          try{text=decodeURIComponent(raw)}catch(err){text=raw}
+          // sisa parameter setelah text= (jika ada & mentah) tetap bagian pesan
+          for(var j=i+1;j<q.length;j++)text+='&'+q[j];
+          break;
+        }
+      }
+    }
+    return {phone:m[1],text:text};
+  }
+  function buildUrls(o){
+    var q='phone='+o.phone+(o.text?'&text='+enc(o.text):'');
+    return {
+      app:'whatsapp://send?'+q,
+      web:'https://api.whatsapp.com/send?'+q
+    };
+  }
+  function openWa(o){
+    var u=buildUrls(o);
+    if(!isMobile){return origOpen.call(window,u.web,'_blank')}
+    // Mobile: buka aplikasi langsung (tanpa redirect wa.me yang merusak karakter), fallback ke web
+    var hidden=false,onVis=function(){if(document.hidden)hidden=true};
+    document.addEventListener('visibilitychange',onVis);
+    var a=document.createElement('a');a.href=u.app;a.style.display='none';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){
+      document.removeEventListener('visibilitychange',onVis);
+      if(!hidden&&!document.hidden)location.href=u.web;
+    },1600);
+    return null;
+  }
+  var origOpen=window.open;
+  window.open=function(url,target,feat){
+    var o=parseWa(url);
+    if(o)return openWa(o);
+    return origOpen.apply(window,arguments);
+  };
+  // Tautan <a href="https://wa.me/...?text=..."> di HTML
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a[href*="wa.me/"]');
+    if(!a)return;
+    var o=parseWa(a.getAttribute('href'));
+    if(!o)return;
+    e.preventDefault();openWa(o);
+  },true);
 })();
 </script>
 </body>
